@@ -1,0 +1,59 @@
+name: MzansiBuilds CI Pipeline
+
+# 1. THE TRIGGERS:
+on:
+  push:
+    branches: [ "main", "development" ]
+  pull_request:
+    branches: [ "main", "development" ]
+
+# 2. THE JOBS:
+jobs:
+  
+  # --- JOB A: Test the C# Backend ---
+  build-backend:
+    runs-on: ubuntu-latest # Spins up a Linux virtual machine
+    defaults:
+      run:
+        working-directory: ./backend # Tells the machine to look inside your backend folder
+
+    steps:
+    - name: Download the code
+      uses: actions/checkout@v4
+
+    - name: Install .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.100' # Use the version of .NET you are building with
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build the C# API
+      run: dotnet build --no-restore
+
+    - name: Run Unit Tests
+      run: dotnet test --no-build --verbosity normal
+
+
+  # --- JOB B: Test the React Frontend ---
+  build-frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend # Tells the machine to look inside your frontend folder
+
+    steps:
+    - name: Download the code
+      uses: actions/checkout@v4
+
+    - name: Install Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20' # Standard stable version for React/Vite
+
+    - name: Install NPM Packages
+      run: npm install
+
+    - name: Build the React App
+      run: npm run build
