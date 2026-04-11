@@ -66,3 +66,5 @@ The system is built as a monorepo, engineered for high availability and low late
 * **Docker:** The C# API and database environments are fully Dockerized for portability, ensuring anyone pulling the repository can run the application seamlessly regardless of their local environment.
 * **API Hosting:** Render (hosting the Dockerized C# backend).
 * **Horizontal Scaling:** The architecture is designed to distribute load by adding more machines/nodes to the system if traffic spikes, utilizing a load balancer to handle all traffic routing.
+
+> Note: CI/CD Pipeline successfully established on April 11, 2026.
