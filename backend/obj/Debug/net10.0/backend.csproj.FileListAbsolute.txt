@@ -1,0 +1,9 @@
+C:\Code\Projects\CSharp\MzansiBuilds\backend\obj\Debug\net10.0\backend.csproj.AssemblyReference.cache
+C:\Code\Projects\CSharp\MzansiBuilds\backend\obj\Debug\net10.0\rpswa.dswa.cache.json
+C:\Code\Projects\CSharp\MzansiBuilds\backend\obj\Debug\net10.0\backend.GeneratedMSBuildEditorConfig.editorconfig
+C:\Code\Projects\CSharp\MzansiBuilds\backend\obj\Debug\net10.0\backend.AssemblyInfoInputs.cache
+C:\Code\Projects\CSharp\MzansiBuilds\backend\obj\Debug\net10.0\backend.AssemblyInfo.cs
+C:\Code\Projects\CSharp\MzansiBuilds\backend\obj\Debug\net10.0\backend.csproj.CoreCompileInputs.cache
+C:\Code\Projects\CSharp\MzansiBuilds\backend\obj\Debug\net10.0\backend.MvcApplicationPartsAssemblyInfo.cs
+C:\Code\Projects\CSharp\MzansiBuilds\backend\obj\Debug\net10.0\backend.MvcApplicationPartsAssemblyInfo.cache
+C:\Code\Projects\CSharp\MzansiBuilds\backend\obj\Debug\net10.0\backend.sourcelink.json
