@@ -1,5 +1,4 @@
 // src/components/common/Badge.tsx
-import React from 'react';
 
 interface BadgeProps {
   text: string;

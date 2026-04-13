@@ -1,5 +1,4 @@
 // src/components/common/Avatar.tsx
-import React from 'react';
 
 interface AvatarProps {
   src?: string;

@@ -2,7 +2,7 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth"; // 1. Import the Auth module
 
 const firebaseConfig = {
-  apiKey: "AIzaSyD_wMz179yY5U-B45DZGUd_xTMs45LuXbI",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: "mzansibuilds-3127e.firebaseapp.com",
   projectId: "mzansibuilds-3127e",
   storageBucket: "mzansibuilds-3127e.firebasestorage.app",
