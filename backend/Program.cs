@@ -11,7 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 var firebaseKeyPath = builder.Configuration["Firebase:AdminKeyPath"];
 if (string.IsNullOrEmpty(firebaseKeyPath))
 {
-    throw new Exception("Firebase Admin Key Path is missing from secrets.");
+    System.Console.WriteLine("Warning: Firebase Admin Key Path is missing from secrets.");
 }
 
 FirebaseApp.Create(new AppOptions
