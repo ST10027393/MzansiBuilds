@@ -47,8 +47,8 @@ builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IUserService, UserService>();          
 builder.Services.AddScoped<IFriendshipService, FriendshipService>(); 
-//builder.Services.AddScoped<IMessageService, MessageService>();     
-//builder.Services.AddScoped<IMilestoneService, MilestoneService>(); 
+builder.Services.AddScoped<IMessageService, MessageService>();     
+builder.Services.AddScoped<IMilestoneService, MilestoneService>(); 
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
