@@ -42,6 +42,18 @@ else
 
 // Add services to the container.
 builder.Services.AddControllers();
+
+// CORS policy!
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173") // Vite's default port
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 // Project Service - Dependency Inversion
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
@@ -85,6 +97,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseRouting();
+app.UseCors("AllowFrontend");
 app.UseAuthentication(); //JWT AUTHENTICATION
 app.UseAuthorization();
 app.MapControllers();
