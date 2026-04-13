@@ -9,15 +9,21 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Initialize Firebase Admin SDK
 var firebaseKeyPath = builder.Configuration["Firebase:AdminKeyPath"];
-if (string.IsNullOrEmpty(firebaseKeyPath))
-{
-    System.Console.WriteLine("Warning: Firebase Admin Key Path is missing from secrets.");
-}
 
-FirebaseApp.Create(new AppOptions
+if (!string.IsNullOrEmpty(firebaseKeyPath))
 {
-    Credential = GoogleCredential.FromFile(firebaseKeyPath)
-});
+    // Local environment: The secret exists, so initialize Firebase Admin securely.
+    FirebaseApp.Create(new AppOptions
+    {
+        Credential = GoogleCredential.FromFile(firebaseKeyPath)
+    });
+}
+else
+{
+    // CI/CD environment: No secret exists. Log a warning and skip initialization completely.
+    // (JWT validation will still work because it relies on the Audience/Issuer URLs below!)
+    Console.WriteLine("WARNING: Firebase Admin Key Path is missing. Skipping Admin SDK initialization.");
+}
 
 // Add services to the container.
 builder.Services.AddControllers();
