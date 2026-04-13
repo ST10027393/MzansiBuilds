@@ -1,38 +1,42 @@
-import { useState } from 'react';
-import api from './services/api';
+import { Button } from './components/common/Button';
+import { Card } from './components/common/Card';
+import { Input } from './components/common/Input';
+import { Badge } from './components/common/Badge';
+import { Avatar } from './components/common/Avatar';
 
 function App() {
-  const [responseMsg, setResponseMsg] = useState<string>("Waiting to test...");
-
-  const testConnection = async () => {
-    try {
-      setResponseMsg("Pinging backend...");
-      // Attempt to hit the protected auth endpoint
-      const response = await api.get('/TestAuth/protected');
-      setResponseMsg(`Success: ${response.status} - ${JSON.stringify(response.data)}`);
-    } catch (error: any) {
-      if (error.response && error.response.status === 401) {
-        setResponseMsg("Connection Successful! Backend is alive and blocking unauthorized access (401).");
-      } else {
-        setResponseMsg(`Connection Failed: Is the C# server running? Error: ${error.message}`);
-      }
-    }
-  };
-
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-github-dark text-github-text">
-      <h1 className="text-4xl font-bold mb-4">MzansiBuilds Frontend</h1>
+    <div className="min-h-screen p-10 max-w-3xl mx-auto space-y-8">
+      <h1 className="text-3xl font-bold border-b border-github-border pb-2">UI Component Library</h1>
       
-      <div className="bg-github-surface border border-github-border p-6 rounded-md shadow-lg text-center">
-        <p className="mb-4 text-github-muted">{responseMsg}</p>
-        
-        <button 
-          onClick={testConnection}
-          className="bg-github-green hover:bg-github-greenHover text-white px-6 py-2 rounded-md font-semibold transition-colors"
-        >
-          Ping C# Backend
-        </button>
-      </div>
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Buttons</h2>
+        <div className="flex space-x-4">
+          <Button variant="primary">Publish Project</Button>
+          <Button variant="secondary">Edit Profile</Button>
+          <Button variant="danger">Delete Repository</Button>
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Inputs</h2>
+        <Input label="Repository name" placeholder="MzansiBuilds" />
+        <Input label="Description (optional)" placeholder="A short description of your project..." />
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Cards & Badges</h2>
+        <Card hoverable className="flex items-start justify-between">
+          <div className="flex space-x-3">
+            <Avatar />
+            <div>
+              <h3 className="font-semibold text-github-text hover:text-blue-400 cursor-pointer">genius-muzama/MzansiBuilds</h3>
+              <p className="text-sm text-github-muted">Building a fullstack developer platform.</p>
+            </div>
+          </div>
+          <Badge text="Published" color="green" />
+        </Card>
+      </section>
     </div>
   );
 }
