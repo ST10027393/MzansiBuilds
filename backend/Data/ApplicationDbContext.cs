@@ -19,7 +19,7 @@ namespace MzansiBuilds.Data
         public DbSet<Friendship> Friendships { get; set; }
         public DbSet<Collaborator> Collaborators { get; set; }
         public DbSet<CollaborationRequest> CollaborationRequests { get; set; }
-        public DbSet<Notification> Notifications { get; set; } // <-- Add this line
+        public DbSet<Notification> Notifications { get; set; } 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
