@@ -443,3 +443,5 @@ C:\Code\Projects\CSharp\MzansiBuilds\backend.Tests\obj\Debug\net8.0\backend.Test
 C:\Code\Projects\CSharp\MzansiBuilds\backend.Tests\obj\Debug\net8.0\backend.Tests.genruntimeconfig.cache
 C:\Code\Projects\CSharp\MzansiBuilds\backend.Tests\obj\Debug\net8.0\ref\backend.Tests.dll
 C:\Code\Projects\CSharp\MzansiBuilds\backend.Tests\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.InMemory.dll
+C:\Code\Projects\CSharp\MzansiBuilds\backend.Tests\bin\Debug\net8.0\Castle.Core.dll
+C:\Code\Projects\CSharp\MzansiBuilds\backend.Tests\bin\Debug\net8.0\Moq.dll
