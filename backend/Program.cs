@@ -4,6 +4,8 @@ using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using MzansiBuilds.Interfaces;
+using MzansiBuilds.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +29,8 @@ else
 
 // Add services to the container.
 builder.Services.AddControllers();
+// Project Service - Dependency Inversion
+builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 

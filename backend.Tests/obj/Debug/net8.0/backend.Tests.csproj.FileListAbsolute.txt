@@ -442,3 +442,4 @@ C:\Code\Projects\CSharp\MzansiBuilds\backend.Tests\obj\Debug\net8.0\refint\backe
 C:\Code\Projects\CSharp\MzansiBuilds\backend.Tests\obj\Debug\net8.0\backend.Tests.pdb
 C:\Code\Projects\CSharp\MzansiBuilds\backend.Tests\obj\Debug\net8.0\backend.Tests.genruntimeconfig.cache
 C:\Code\Projects\CSharp\MzansiBuilds\backend.Tests\obj\Debug\net8.0\ref\backend.Tests.dll
+C:\Code\Projects\CSharp\MzansiBuilds\backend.Tests\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.InMemory.dll
