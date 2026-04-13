@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using MzansiBuilds.Interfaces;
 using MzansiBuilds.Services;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,10 +28,26 @@ else
     Console.WriteLine("WARNING: Firebase Admin Key Path is missing. Skipping Admin SDK initialization.");
 }
 
+// Configure Upstash Redis Connection
+var redisConnectionString = builder.Configuration["Upstash:RedisConnection"];
+if (string.IsNullOrEmpty(redisConnectionString))
+{
+    Console.WriteLine("WARNING: Redis connection string is missing.");
+}
+else
+{
+    // Register Redis as a Singleton (Only one connection needed for the whole app)
+    builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisConnectionString));
+}
+
 // Add services to the container.
 builder.Services.AddControllers();
 // Project Service - Dependency Inversion
 builder.Services.AddScoped<IProjectService, ProjectService>();
+builder.Services.AddScoped<IProjectService, ProjectService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
