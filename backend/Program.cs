@@ -67,9 +67,17 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Configure the MySQL Database Connection
+/*
 var connectionString = builder.Configuration.GetConnectionString("MySQL");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+*/
+// Grab the connection string (we will set this in Step 3)
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+// Use SQLite instead of MySQL!
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlite(connectionString));
 
 // Configure JWT Authentication
 var firebaseProjectId = "mzansibuilds-3127e"; 
