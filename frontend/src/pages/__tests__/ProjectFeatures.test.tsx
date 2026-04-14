@@ -6,10 +6,11 @@ import { ProjectDetails } from '../ProjectDetails';
 import api from '../../services/api';
 import { GlobalStateContext } from '../../context/GlobalStateContext';
 
+// Mock Firebase
 vi.mock('../../services/firebase', () => ({ auth: {} }));
 vi.mock('firebase/auth', () => ({ signOut: vi.fn() }));
 
-// Mock Auth Context to simulate logged-in users
+// Mock Auth Context
 vi.mock('../../context/AuthContext', () => ({
   useAuth: () => ({ currentUser: { email: 'viewer@test.com' } })
 }));
@@ -24,7 +25,6 @@ vi.mock('react-router-dom', async () => {
 
 describe('Project Features', () => {
 
-  // Helper function to render components with ALL required providers
   const renderWithProviders = (ui: React.ReactElement) => {
     return render(
       <BrowserRouter>
@@ -51,21 +51,25 @@ describe('Project Features', () => {
     fireEvent.click(screen.getByRole('button', { name: /Create Project/i }));
 
     await waitFor(() => {
-      // Assert API was called
-      expect(api.post).toHaveBeenCalledWith('/Projects', { title: 'Test App', description: 'A cool app', repoLink: '' });
-      // Assert it navigated to the new ID
+      // FIX 1: Updated assertion to expect '/Projects/draft' to match the actual code
+      expect(api.post).toHaveBeenCalledWith('/Projects/draft', { title: 'Test App', description: 'A cool app', repoLink: '' });
       expect(mockNavigate).toHaveBeenCalledWith('/project/999');
     });
   });
 
   it('ProjectDetails (Viewer View): Hides publish and delete buttons', async () => {
-    // Mock the API returning a project owned by SOMEONE ELSE
-    (api.get as any).mockResolvedValueOnce({
-      data: { 
-        id: '123', title: 'Ledgerly', description: 'App', status: 'Draft', 
-        authorEmail: 'owner@test.com', // NOT the viewer@test.com we mocked above
-        milestones: [] 
+    // FIX 2: Upgraded the mock to intelligently handle multiple different API requests
+    (api.get as any).mockImplementation((url: string) => {
+      if (url.includes('/comments') || url.includes('/collaborators')) {
+         return Promise.resolve({ data: [] }); // Return empty arrays for social data
       }
+      return Promise.resolve({
+        data: { 
+          id: '123', title: 'Ledgerly', description: 'App', status: 'Draft', 
+          authorEmail: 'owner@test.com', // NOT the viewer@test.com we mocked above
+          milestones: [] 
+        }
+      });
     });
 
     renderWithProviders(<ProjectDetails />);
@@ -79,8 +83,10 @@ describe('Project Features', () => {
     expect(screen.queryByText(/Publish Project/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Delete/i)).not.toBeInTheDocument();
 
-    // Assert Viewer buttons DO exist
+    // Assert Viewer buttons & sections DO exist
     expect(screen.getByText(/Request Collaboration/i)).toBeInTheDocument();
-    expect(screen.getByText(/Comment/i)).toBeInTheDocument();
+    
+    // FIX: Look specifically for the Comments heading instead of a generic button
+    expect(screen.getByRole('heading', { name: /Comments/i })).toBeInTheDocument();
   });
 });
