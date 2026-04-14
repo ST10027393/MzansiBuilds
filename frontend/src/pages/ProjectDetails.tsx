@@ -156,7 +156,7 @@ export const ProjectDetails = () => {
           <h1 className="text-2xl font-bold text-blue-400">{project.authorUsername} / {project.title}</h1>
           <p className="text-github-muted text-sm mt-1">{project.description}</p>
         </div>
-        <Badge text={project.status} color={project.status === 'Published' ? 'green' : 'gray'} />
+        <Badge text={project.status} color={project.status === 'Published' ? 'green' : 'muted'} />
       </div>
 
       <Card className="!p-6 min-h-[300px]">
