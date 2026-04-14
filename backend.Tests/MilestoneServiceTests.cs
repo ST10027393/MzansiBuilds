@@ -21,7 +21,8 @@ namespace backend.Tests
             var service = new MilestoneService(context);
 
             // Arrange: project owned by "owner", request from "stranger"
-            context.Projects.Add(new Project { Id = 1, OwnerId = "owner", Title = "P", ShortDescription = "D", CurrentState = "Draft", Readme = "", RepoLink = "" });
+            // FIX: Changed ShortDescription to Description
+            context.Projects.Add(new Project { Id = 1, OwnerId = "owner", Title = "P", Description = "D", CurrentState = "Draft", Readme = "", RepoLink = "" });
             await context.SaveChangesAsync();
 
             // Act & Assert
@@ -36,7 +37,8 @@ namespace backend.Tests
             var service = new MilestoneService(context);
 
             context.Users.Add(new User { Id = "owner", Username = "Owner", Email = "o@t.com" });
-            context.Projects.Add(new Project { Id = 1, OwnerId = "owner", Title = "P", ShortDescription = "D", CurrentState = "Draft", Readme = "", RepoLink = "" });
+            // FIX: Changed ShortDescription to Description
+            context.Projects.Add(new Project { Id = 1, OwnerId = "owner", Title = "P", Description = "D", CurrentState = "Draft", Readme = "", RepoLink = "" });
             await context.SaveChangesAsync();
 
             var first = await service.AddMilestoneAsync(1, "owner", "Step 1", "");

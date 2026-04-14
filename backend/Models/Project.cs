@@ -5,9 +5,15 @@ namespace MzansiBuilds.Models
         public int Id { get; set; }
         public string OwnerId { get; set; } = string.Empty;
         public string Title { get; set; } = string.Empty;
-        public string ShortDescription { get; set; } = string.Empty;
         public string Readme { get; set; } = string.Empty;
         public string RepoLink { get; set; } = string.Empty;
+
+        public string Description { get; set; } = string.Empty; 
+        public string Status { get; set; } = "Draft"; 
+        public string AuthorId { get; set; } = string.Empty; 
+        
+        public string AuthorUsername { get; set; } = string.Empty;
+        public string AuthorEmail { get; set; } = string.Empty;
         
         // Default to Draft so it is saved locally to the user, but not public.
         public string CurrentState { get; set; } = "Draft"; 

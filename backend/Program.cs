@@ -41,7 +41,12 @@ else
 }
 
 // Add services to the container.
-builder.Services.AddControllers();
+// Tells the JSON serializer to stop when it detects an infinite loop!
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    });
 
 // CORS policy!
 builder.Services.AddCors(options =>
@@ -67,17 +72,18 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Configure the MySQL Database Connection
-/*
 var connectionString = builder.Configuration.GetConnectionString("MySQL");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
-*/
-// Grab the connection string (we will set this in Step 3)
+    options.UseMySql(connectionString, ServerVersion.Parse("8.0.30-mysql")));
+
+/* Local sqlite connection for testing - Uncomment if you want to use SQLite instead of MySQL
+// Grab the connection string 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 // Use SQLite instead of MySQL!
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(connectionString));
+*/
 
 // Configure JWT Authentication
 var firebaseProjectId = "mzansibuilds-3127e"; 
