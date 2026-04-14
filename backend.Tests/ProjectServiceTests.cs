@@ -28,8 +28,9 @@ namespace backend.Tests
             var service = new ProjectService(context);
             var testUserId = "test-user-123";
 
-            // Create a draft directly using our service
-            var draft = await service.CreateDraftAsync(testUserId, "Test App", "A cool app");
+            // Act: Create a draft directly using our service
+            // FIX: Added the required 4th parameter for repoLink
+            var draft = await service.CreateDraftAsync(testUserId, "Test App", "A cool app", "https://github.com/test");
 
             // Act: Try to publish the draft
             var publishedProject = await service.PublishProjectAsync(draft.Id, testUserId);
@@ -50,7 +51,8 @@ namespace backend.Tests
             var service = new ProjectService(context);
             var testUserId = "test-user-123";
 
-            var draft = await service.CreateDraftAsync(testUserId, "Test App", "A cool app");
+            // FIX: Added the required 4th parameter for repoLink
+            var draft = await service.CreateDraftAsync(testUserId, "Test App", "A cool app", "https://github.com/test");
             await service.PublishProjectAsync(draft.Id, testUserId); // Publish it once
 
             // Act & Assert: Trying to publish a second time should throw our State Exception
