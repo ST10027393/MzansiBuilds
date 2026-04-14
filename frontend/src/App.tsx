@@ -6,6 +6,7 @@ import { Register } from './pages/Register';
 import { Dashboard } from './pages/Dashboard'; 
 import { CreateProject } from './pages/CreateProject';
 import { ProjectDetails } from './pages/ProjectDetails';
+import { Celebrations } from './pages/Celebrations';
 
 // A wrapper that protects private routes
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -35,6 +36,7 @@ function App() {
       {/* Project Routes */}
       <Route path="/new" element={<CreateProject />} />
       <Route path="/project/:id" element={<ProjectDetails />} />
+      <Route path="/celebrations" element={<Celebrations />} />
     </Routes>
   );
 }

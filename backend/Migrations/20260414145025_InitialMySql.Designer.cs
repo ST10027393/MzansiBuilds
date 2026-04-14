@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MzansiBuilds.Data;
 
@@ -11,9 +12,11 @@ using MzansiBuilds.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260414145025_InitialMySql")]
+    partial class InitialMySql
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -78,33 +81,6 @@ namespace backend.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Collaborators");
-                });
-
-            modelBuilder.Entity("MzansiBuilds.Models.Comment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("ProjectId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Text")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Comments");
                 });
 
             modelBuilder.Entity("MzansiBuilds.Models.Friendship", b =>
@@ -250,28 +226,12 @@ namespace backend.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("AuthorEmail")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("AuthorId")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("AuthorUsername")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("CurrentState")
                         .IsRequired()
                         .HasColumnType("varchar(255)");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("longtext");
 
                     b.Property<string>("OwnerId")
                         .IsRequired()
@@ -285,7 +245,7 @@ namespace backend.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Status")
+                    b.Property<string>("ShortDescription")
                         .IsRequired()
                         .HasColumnType("longtext");
 
