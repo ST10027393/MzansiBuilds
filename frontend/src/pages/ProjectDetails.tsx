@@ -64,13 +64,13 @@ export const ProjectDetails = () => {
 
   if (loading || !project) return <div className="p-10 text-white text-center">Loading...</div>;
 
-  // Check the Firebase 'uid' against the database 'authorId' and 'ownerId'.
-  // Wrap the check to ensure currentUser actually exists and IDs aren't undefined!
+  // FIX: Added strict existence checks so undefined !== undefined!
   const isOwner = Boolean(
     currentUser && project && (
-      (project as any).authorId === currentUser.uid || 
-      (project as any).ownerId === currentUser.uid ||
-      project.authorEmail === currentUser.email
+      (currentUser.uid && currentUser.uid === (project as any).authorId) || 
+      (currentUser.uid && currentUser.uid === (project as any).ownerId) ||
+      (currentUser.email && currentUser.email === project.authorEmail) ||
+      (currentUser.email && project.authorUsername && currentUser.email.split('@')[0] === project.authorUsername)
     )
   );
 
