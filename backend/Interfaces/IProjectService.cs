@@ -7,6 +7,7 @@ namespace MzansiBuilds.Interfaces
         Task<Project> CreateDraftAsync(string userId, string title, string description);
         Task<Project> PublishProjectAsync(int projectId, string userId);
         Task<IEnumerable<Project>> GetLiveFeedAsync();
+        Task<IEnumerable<Project>> GetMyProjectsAsync(string userId);
 
         //Celeberation Wall Methods
         Task<Project> CompleteProjectAsync(int projectId, string userId);

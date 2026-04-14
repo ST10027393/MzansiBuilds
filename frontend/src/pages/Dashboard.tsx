@@ -7,7 +7,8 @@ import { Avatar } from '../components/common/Avatar';
 import { Badge } from '../components/common/Badge';
 import { useAuth } from '../context/AuthContext';
 import { useGlobalState } from '../context/GlobalStateContext';
-import api from '../services/api'; // Import your Axios service
+import api from '../services/api';
+import { Link } from 'react-router-dom';
 
 // Define TypeScript interfaces for our expected database data
 interface Project {
@@ -99,10 +100,13 @@ export const Dashboard = () => {
             </p>
           ) : (
             filteredMyProjects.map(project => (
-              <Card key={project.id} hoverable className="!p-3">
-                <h4 className="font-semibold text-sm text-blue-400">{project.title}</h4>
-                <p className="text-xs text-github-muted mt-1 truncate">{project.description}</p>
-              </Card>
+              /* Wrap the Card in a Link so it is clickable! */
+              <Link to={`/project/${project.id}`} key={project.id} className="block mb-2">
+                <Card hoverable className="!p-3 border-l-4 border-l-transparent hover:border-l-blue-500 transition-all cursor-pointer">
+                  <h4 className="font-semibold text-sm text-blue-400">{project.title}</h4>
+                  <p className="text-xs text-github-muted mt-1 truncate">{project.description}</p>
+                </Card>
+              </Link>
             ))
           )}
         </div>

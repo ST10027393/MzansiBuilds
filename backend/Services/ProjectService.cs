@@ -93,5 +93,15 @@ namespace MzansiBuilds.Services
                 .OrderByDescending(p => p.UpdatedAt)
                 .ToListAsync();
         }
+
+        public async Task<IEnumerable<Project>> GetMyProjectsAsync(string userId)
+        {
+            // Go into the SQLite database, find all projects where the OwnerId matches the logged-in user,
+            // and order them from newest to oldest.
+            return await _context.Projects
+                .Where(p => p.OwnerId == userId) 
+                .OrderByDescending(p => p.CreatedAt) 
+                .ToListAsync();
+        }
     }
 }

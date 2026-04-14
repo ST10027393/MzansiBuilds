@@ -81,6 +81,28 @@ namespace MzansiBuilds.Controllers
             var feed = await _projectService.GetLiveFeedAsync();
             return Ok(feed);
         }
+
+        [HttpGet("mine")]
+        public async Task<IActionResult> GetMyProjects()
+        {
+            // Get the secure Firebase UID of the user making the request
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized("Invalid token: User ID is missing.");
+
+            try
+            {
+                // Fetch projects tied to this specific user
+                // (Ensure your IProjectService has a method named something like GetMyProjectsAsync)
+                var projects = await _projectService.GetMyProjectsAsync(userId);
+                return Ok(projects);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 
     // A quick DTO (Data Transfer Object) for the incoming request
@@ -88,5 +110,8 @@ namespace MzansiBuilds.Controllers
     {
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
+        
+        // FIX: Add this so C# captures the GitHub URL from React!
+        public string RepoLink { get; set; } = string.Empty; 
     }
 }

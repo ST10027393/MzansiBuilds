@@ -2,8 +2,10 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
-// Import layout shell (we'll assume you saved it as a component called Dashboard for now)
+// Import layout shell 
 import { Dashboard } from './pages/Dashboard'; 
+import { CreateProject } from './pages/CreateProject';
+import { ProjectDetails } from './pages/ProjectDetails';
 
 // A wrapper that protects private routes
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -29,6 +31,10 @@ function App() {
           </ProtectedRoute>
         } 
       />
+
+      {/* Project Routes */}
+      <Route path="/new" element={<CreateProject />} />
+      <Route path="/project/:id" element={<ProjectDetails />} />
     </Routes>
   );
 }
