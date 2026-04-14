@@ -52,5 +52,8 @@ jobs:
     - name: Install NPM Packages
       run: npm install
 
+    - name: Run Unit Tests (Proves Frontend TDD)
+      run: npm run test
+
     - name: Build the React App
       run: npm run build
