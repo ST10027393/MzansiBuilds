@@ -74,7 +74,7 @@ export const ProjectDetails = () => {
     )
   );
 
-  const isCompleted = project.status === 'Completed';
+  const isCompleted = (project.status as string) === 'Completed';
 
   // --- API Handlers: Status Changes ---
   const handlePublish = async () => {
@@ -90,7 +90,8 @@ export const ProjectDetails = () => {
     if (window.confirm("Are you sure you want to mark this project as Completed? This locks milestones and collaborations.")) {
       try {
         await api.patch(`/Projects/${id}/complete`);
-        setProject({ ...project, status: 'Completed' });
+        // Add "as any" to the status here:
+        setProject({ ...project, status: 'Completed' as any });
       } catch (error: any) {
         alert(error.response?.data || "Failed to complete project.");
       }
@@ -235,7 +236,7 @@ export const ProjectDetails = () => {
             <p className="text-github-muted text-sm mt-1">{project.description}</p>
           </div>
         )}
-        <Badge text={project.status} color={isCompleted ? 'green' : (project.status === 'Published' ? 'muted' : 'gray')} />
+        <Badge text={project.status} color={isCompleted ? 'green' : (project.status === 'Published' ? 'muted' : undefined)} />
       </div>
 
       {/* 5. Updated Middle Pane README UI */}

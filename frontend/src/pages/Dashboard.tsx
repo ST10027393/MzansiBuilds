@@ -33,8 +33,8 @@ export const Dashboard = () => {
   const [loading, setLoading] = useState(true);
 
   // New States for Live Feed Filtering
-  const [feedFilterStatus, setFeedFilterStatus] = useState<'All' | 'Published' | 'Completed'>('All');
-  const [feedSortDate, setFeedSortDate] = useState<'Newest' | 'Oldest'>('Newest');
+  //const [feedFilterStatus, setFeedFilterStatus] = useState<'All' | 'Published' | 'Completed'>('All');
+  //const [feedSortDate, setFeedSortDate] = useState<'Newest' | 'Oldest'>('Newest');
 
   // Fetch data from C# SQLite database on load
   useEffect(() => {
@@ -68,9 +68,9 @@ export const Dashboard = () => {
   const processedFeedProjects = feedProjects
     .filter(p => filterStatus === 'All' || p.status === filterStatus)
     // .filter(p => friendsOnly ? isFriend(p.authorUsername) : true) // Future wire-up for friends!
-    .sort((a, b) => {
-      // Placeholder for Date Sorting (will wire to a.createdAt once C# provides it)
-      return sortDate === 'Newest' ? -1 : 1; 
+    .sort((_a, _b) => {
+        // Placeholder for Date Sorting 
+        return sortDate === 'Newest' ? -1 : 1; 
     });
 
   // Filter local projects based on search query
