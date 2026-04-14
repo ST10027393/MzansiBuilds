@@ -6,6 +6,9 @@ import { ProjectDetails } from '../ProjectDetails';
 import api from '../../services/api';
 import { GlobalStateContext } from '../../context/GlobalStateContext';
 
+vi.mock('../../services/firebase', () => ({ auth: {} }));
+vi.mock('firebase/auth', () => ({ signOut: vi.fn() }));
+
 // Mock Auth Context to simulate logged-in users
 vi.mock('../../context/AuthContext', () => ({
   useAuth: () => ({ currentUser: { email: 'viewer@test.com' } })
