@@ -1,3 +1,4 @@
+// FILE: frontend/src/components/common/Badge.tsx
 // src/components/common/Badge.tsx
 
 interface BadgeProps {

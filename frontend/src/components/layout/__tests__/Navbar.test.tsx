@@ -1,3 +1,4 @@
+// FILE: frontend/src/components/layout/__tests__/Navbar.test.tsx
 import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { vi, describe, it, expect } from 'vitest';

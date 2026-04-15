@@ -1,3 +1,4 @@
+// FILE: frontend/src/pages/Login.tsx
 import { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../services/firebase';

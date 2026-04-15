@@ -1,3 +1,4 @@
+// FILE: backend/Controllers/FriendshipController.cs
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MzansiBuilds.Interfaces;

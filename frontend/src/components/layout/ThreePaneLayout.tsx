@@ -1,3 +1,4 @@
+// FILE: frontend/src/components/layout/ThreePaneLayout.tsx
 import type { ReactNode } from 'react';
 
 interface LayoutProps {

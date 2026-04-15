@@ -1,3 +1,4 @@
+// FILE: backend/Models/Comments.cs
 // src/Models/Comment.cs
 using System.ComponentModel.DataAnnotations;
 
@@ -11,5 +12,9 @@ namespace MzansiBuilds.Models
         public string UserId { get; set; } = string.Empty;
         public string Text { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        // NEW: Navigation Properties
+        public Project? Project { get; set; }
+        public User? User { get; set; }
     }
 }

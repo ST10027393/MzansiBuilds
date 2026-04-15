@@ -1,3 +1,4 @@
+// FILE: frontend/src/pages/__tests__/Register.test.tsx
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { vi, describe, it, expect, beforeEach } from 'vitest';

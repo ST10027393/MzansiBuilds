@@ -1,3 +1,4 @@
+// FILE: frontend/src/services/firebase.ts
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth"; // 1. Import the Auth module
 

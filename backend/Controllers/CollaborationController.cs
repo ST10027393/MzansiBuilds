@@ -1,3 +1,4 @@
+// FILE: backend/Controllers/CollaborationController.cs
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

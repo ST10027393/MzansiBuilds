@@ -1,3 +1,4 @@
+// FILE: frontend/src/types/index.ts
 export interface Milestone {
   id: string;
   title: string;

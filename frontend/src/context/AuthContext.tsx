@@ -1,3 +1,4 @@
+// FILE: frontend/src/context/AuthContext.tsx
 import { createContext, useContext, useEffect, useState} from 'react';
 import type { ReactNode } from 'react';
 import type { User } from 'firebase/auth';

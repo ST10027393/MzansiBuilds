@@ -1,3 +1,4 @@
+// FILE: frontend/src/App.tsx
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { Login } from './pages/Login';
@@ -7,6 +8,7 @@ import { Dashboard } from './pages/Dashboard';
 import { CreateProject } from './pages/CreateProject';
 import { ProjectDetails } from './pages/ProjectDetails';
 import { Celebrations } from './pages/Celebrations';
+import { Profile } from './pages/Profile';
 
 // A wrapper that protects private routes
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -37,6 +39,8 @@ function App() {
       <Route path="/new" element={<CreateProject />} />
       <Route path="/project/:id" element={<ProjectDetails />} />
       <Route path="/celebrations" element={<Celebrations />} />
+      <Route path="/profile" element={<Profile />} />
+      <Route path="/profile/:id" element={<Profile />} />
     </Routes>
   );
 }
