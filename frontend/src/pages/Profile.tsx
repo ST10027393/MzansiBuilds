@@ -30,6 +30,7 @@ export const Profile = () => {
   const [projects, setProjects] = useState<any[]>([]);
   const [friendRequests, setFriendRequests] = useState<any[]>([]);
   const [friends, setFriends] = useState<any[]>([]);
+  const [collabRequests, setCollabRequests] = useState<any[]>([]);
   
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({ username: '', bio: '', name: '', surname: '' });
@@ -66,6 +67,9 @@ export const Profile = () => {
             
             const friendsRes = await api.get('/Friendship');
             setFriends(friendsRes.data);
+
+            const collabRes = await api.get('/Collaboration/requests/pending').catch(() => ({ data: [] }));
+            setCollabRequests(collabRes.data);
         }
       } catch (error) {
         console.error("Failed to load profile", error);
@@ -133,6 +137,15 @@ export const Profile = () => {
   // ... (Keep existing handleSendFriendRequest and handleRespondRequest untouched) ...
   const handleSendFriendRequest = async () => { /* untouched */ };
   const handleRespondRequest = async (requestId: number, accept: boolean) => { /* untouched */ };
+  const handleRespondCollab = async (requestId: number, accept: boolean) => {
+    try {
+      await api.patch(`/Collaboration/requests/${requestId}/respond`, { accept });
+      // Instantly remove it from the UI feed
+      setCollabRequests(collabRequests.filter(req => req.id !== requestId));
+    } catch (e) {
+      console.error("Failed to respond to collab request", e);
+    }
+  };
 
   if (!profileData) return <div className="p-10 text-white text-center">Loading Profile...</div>;
 
@@ -253,6 +266,23 @@ export const Profile = () => {
                   <div className="flex space-x-2">
                     <Button variant="primary" className="!py-0.5 !px-2 text-xs" onClick={() => handleRespondRequest(req.id, true)}>Accept</Button>
                     <Button variant="danger" className="!py-0.5 !px-2 text-xs" onClick={() => handleRespondRequest(req.id, false)}>Decline</Button>
+                  </div>
+                </Card>
+              ))
+            )}
+          </div>
+          {/* NEW: Collab Requests */}
+          <div>
+            <h3 className="font-semibold text-sm text-white mb-3 mt-4 text-blue-400">Collab Requests</h3>
+            {collabRequests.length === 0 ? <p className="text-xs text-github-muted">No pending collaborations.</p> : (
+              collabRequests.map(req => (
+                <Card key={req.id} className="!p-3 mb-2 space-y-2 border-l-2 border-l-blue-500">
+                  <p className="text-xs text-white">
+                    <span className="font-bold">{req.username}</span> wants to join <span className="font-bold italic">{req.projectTitle}</span>.
+                  </p>
+                  <div className="flex space-x-2">
+                    <Button variant="primary" className="!py-0.5 !px-2 text-xs" onClick={() => handleRespondCollab(req.id, true)}>Accept</Button>
+                    <Button variant="danger" className="!py-0.5 !px-2 text-xs" onClick={() => handleRespondCollab(req.id, false)}>Decline</Button>
                   </div>
                 </Card>
               ))

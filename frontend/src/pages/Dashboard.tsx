@@ -17,7 +17,9 @@ interface Project {
   title: string;
   description: string;
   authorUsername: string;
+  authorId: string; 
   status: string;
+  createdAt: string; 
 }
 
 export const Dashboard = () => {
@@ -37,26 +39,26 @@ export const Dashboard = () => {
   //const [feedFilterStatus, setFeedFilterStatus] = useState<'All' | 'Published' | 'Completed'>('All');
   //const [feedSortDate, setFeedSortDate] = useState<'Newest' | 'Oldest'>('Newest');
 
-  // Fetch data from C# SQLite database on load
+  const [friends, setFriends] = useState<any[]>([]);
+
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        // NOTE: Adjust these route strings to match your actual C# controller routes!
-        // We use Promise.all to fetch them simultaneously for speed.
-        const [myProjRes, feedRes] = await Promise.all([
+        const [myProjRes, feedRes, friendsRes] = await Promise.all([
           api.get('/Projects/mine').catch(() => ({ data: [] })), 
-          api.get('/Projects/feed').catch(() => ({ data: [] }))
+          api.get('/Projects/feed').catch(() => ({ data: [] })),
+          api.get('/Friendship').catch(() => ({ data: [] })) // Fetch Friends
         ]);
 
         setMyProjects(myProjRes.data);
         setFeedProjects(feedRes.data);
+        setFriends(friendsRes.data);
       } catch (error) {
         console.error("Failed to load dashboard data:", error);
       } finally {
         setLoading(false);
       }
     };
-
     fetchDashboardData();
   }, []);
 
@@ -68,10 +70,15 @@ export const Dashboard = () => {
   // --- FILTER LOGIC ---
   const processedFeedProjects = feedProjects
     .filter(p => filterStatus === 'All' || p.status === filterStatus)
-    // .filter(p => friendsOnly ? isFriend(p.authorUsername) : true) // Future wire-up for friends!
-    .sort((_a, _b) => {
-        // Placeholder for Date Sorting 
-        return sortDate === 'Newest' ? -1 : 1; 
+    .filter(p => {
+      if (!friendsOnly) return true;
+      // Check if the project author's ID matches any friend's ID
+      return friends.some(f => f.requesterId === p.authorId || f.addresseeId === p.authorId);
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.createdAt || 0).getTime();
+      const dateB = new Date(b.createdAt || 0).getTime();
+      return sortDate === 'Newest' ? dateB - dateA : dateA - dateB; 
     });
 
   // Filter local projects based on search query
@@ -127,7 +134,7 @@ export const Dashboard = () => {
                   <Card hoverable className="!p-3 border-l-4 border-l-transparent hover:border-l-blue-500 transition-all cursor-pointer">
                     {/* Updated Naming Convention: username-projectname */}
                     <h4 className="font-semibold text-sm text-blue-400">
-                      {currentUser?.email?.split('@')[0]}-{project.title}
+                      {project.authorUsername}-{project.title}
                     </h4>
                     <p className="text-xs text-github-muted mt-1 truncate">{project.description}</p>
                   </Card>
