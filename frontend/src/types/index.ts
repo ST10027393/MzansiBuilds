@@ -9,6 +9,7 @@ export interface Milestone {
 }
 
 export interface Project {
+  authorId: any;
   map(arg0: (c: any) => JSX.Element): import("react").ReactNode;
   length: number;
   some(arg0: (c: any) => boolean): any;

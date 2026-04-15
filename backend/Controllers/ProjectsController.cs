@@ -167,15 +167,17 @@ namespace MzansiBuilds.Controllers
             }
         }
 
-        /*
-        [HttpGet("{id}/comments")]
-        public IActionResult GetComments(int id)
+        [HttpGet("user/{userId}")]
+        public async Task<IActionResult> GetUserProjects(string userId)
         {
-            // We will return an empty list for now to stop the 404 error.
-            // Future step: Wire this up to _projectService.GetCommentsAsync(id)
-            return Ok(new List<object>()); 
+            // We can reuse the exact same service method we built for the owner!
+            var projects = await _projectService.GetMyProjectsAsync(userId);
+            
+            // Optional: You might want to filter out "Draft" projects so viewers only see Published/Completed ones
+            var visibleProjects = projects.Where(p => p.Status != "Draft").ToList();
+            
+            return Ok(visibleProjects);
         }
-        */
 
         // 1. Endpoint to Save Project Edits
         [HttpPut("{id}")]
@@ -185,20 +187,6 @@ namespace MzansiBuilds.Controllers
             var updatedProject = await _projectService.UpdateProjectAsync(id, request.Title, request.Description, request.Readme);
             return Ok(updatedProject);
         }
-
-        /*
-        [HttpPost("{id}/comments")]
-        public async Task<IActionResult> AddComment(int id, [FromBody] CommentDto request)
-        {
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            
-            // FIX: Add this null check to satisfy the CS8604 warning!
-            if (string.IsNullOrEmpty(userId)) return Unauthorized("User not logged in.");
-
-            var comment = await _projectService.AddCommentAsync(id, userId, request.Text);
-            return Ok(comment);
-        }
-        */
 
         // 1. Actually FETCH the comments from Aiven
         [HttpGet("{id}/comments")]

@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using MzansiBuilds.Interfaces;
 using MzansiBuilds.Services;
 using StackExchange.Redis;
+using MzansiBuilds.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -86,6 +87,14 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(connectionString));
 */
 
+// Add this before builder.Build();
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    // Get this connection string from your Upstash console
+    options.Configuration = builder.Configuration.GetConnectionString("Redis");
+    options.InstanceName = "MzansiBuilds_";
+});
+
 // Configure JWT Authentication
 var firebaseProjectId = "mzansibuilds-3127e"; 
 
@@ -103,6 +112,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+builder.Services.AddSignalR();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -115,6 +126,7 @@ app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors("AllowFrontend");
 app.UseAuthentication(); //JWT AUTHENTICATION
+app.MapHub<NotificationHub>("/hubs/notifications");
 app.UseAuthorization();
 app.MapControllers();
 

@@ -1,4 +1,3 @@
-// FILE: frontend/src/pages/Dashboard.tsx
 import { useState, useEffect } from 'react';
 import { Navbar } from '../components/layout/Navbar';
 import { ThreePaneLayout } from '../components/layout/ThreePaneLayout';
@@ -25,20 +24,13 @@ interface Project {
 
 export const Dashboard = () => {
   const { isChatOpen } = useGlobalState();
-  // Grab the real logged-in user from Firebase!
   const { currentUser } = useAuth();
 
-  // State for search query in left pane
   const [searchProjectsQuery, setSearchProjectsQuery] = useState('');
 
-  // State to hold our live database pulls
   const [myProjects, setMyProjects] = useState<Project[]>([]);
   const [feedProjects, setFeedProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // New States for Live Feed Filtering
-  //const [feedFilterStatus, setFeedFilterStatus] = useState<'All' | 'Published' | 'Completed'>('All');
-  //const [feedSortDate, setFeedSortDate] = useState<'Newest' | 'Oldest'>('Newest');
 
   const [friends, setFriends] = useState<any[]>([]);
 
@@ -48,7 +40,7 @@ export const Dashboard = () => {
         const [myProjRes, feedRes, friendsRes] = await Promise.all([
           api.get('/Projects/mine').catch(() => ({ data: [] })), 
           api.get('/Projects/feed').catch(() => ({ data: [] })),
-          api.get('/Friendship').catch(() => ({ data: [] })) // Fetch Friends
+          api.get('/Friendship').catch(() => ({ data: [] })) 
         ]);
 
         setMyProjects(myProjRes.data);
@@ -73,7 +65,6 @@ export const Dashboard = () => {
     .filter(p => filterStatus === 'All' || p.status === filterStatus)
     .filter(p => {
       if (!friendsOnly) return true;
-      // Check if the project author's ID matches any friend's ID
       return friends.some(f => f.requesterId === p.authorId || f.addresseeId === p.authorId);
     })
     .sort((a, b) => {
@@ -82,13 +73,12 @@ export const Dashboard = () => {
       return sortDate === 'Newest' ? dateB - dateA : dateA - dateB; 
     });
 
-  // Filter local projects based on search query
   const filteredMyProjects = myProjects.filter(project =>
     project.title.toLowerCase().includes(searchProjectsQuery.toLowerCase()) ||
     project.description.toLowerCase().includes(searchProjectsQuery.toLowerCase())
   );
 
-  // --- LEFT PANE (User Profile & Own Projects) ---
+  // --- LEFT PANE ---
   const LeftContent = (
     <div className="space-y-6">
       <div className="flex items-center space-x-3">
@@ -104,13 +94,11 @@ export const Dashboard = () => {
       <div>
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-semibold text-sm text-white">Top Projects</h3>
-          {/* FIX: Wrapped in a Link so it actually navigates to the Create page */}
           <Link to="/new" className="bg-github-green text-white px-3 py-1 rounded-md font-medium text-xs hover:bg-green-600 transition-colors">
             New
           </Link>
         </div>
         
-        {/* Search Bar (Moved to Left Pane) */}
         <div className="hidden md:flex flex-1 max-w-sm mb-4">
           <input 
             type="text" 
@@ -133,7 +121,6 @@ export const Dashboard = () => {
               {filteredMyProjects.map(project => (
                 <Link to={`/project/${project.id}`} key={project.id} className="block mb-2">
                   <Card hoverable className="!p-3 border-l-4 border-l-transparent hover:border-l-blue-500 transition-all cursor-pointer">
-                    {/* Updated Naming Convention: username-projectname */}
                     <h4 className="font-semibold text-sm text-blue-400">
                       {(project.authorUsername || project.owner?.username)}-{project.title}
                     </h4>
@@ -142,7 +129,6 @@ export const Dashboard = () => {
                 </Link>
               ))}
               
-              {/* Show All Projects Button */}
               <Link to="/profile" className="block text-center text-xs text-blue-400 hover:text-blue-300 mt-4 py-2 border border-github-border rounded-md hover:bg-github-surface transition-colors">
                 Show all projects
               </Link>
@@ -153,15 +139,13 @@ export const Dashboard = () => {
     </div>
   );
 
-  // --- MIDDLE PANE (Live Feed) ---
+  // --- MIDDLE PANE ---
   const MiddleContent = (
     <div className="space-y-4">
       <div className="flex flex-col border-b border-github-border pb-3 mb-4 space-y-3">
         <h2 className="text-xl font-bold text-white">Live Feed</h2>
         
-        {/* Interactive Filter Bar */}
         <div className="flex flex-wrap gap-2 items-center bg-github-surface p-2 rounded-md border border-github-border">
-          
           <select 
             value={filterStatus} 
             onChange={(e) => setFilterStatus(e.target.value as any)}
@@ -193,7 +177,6 @@ export const Dashboard = () => {
         </div>
       </div>
 
-      {/* Feed Rendering */}
       {loading ? (
         <p className="text-sm text-github-muted text-center py-10">Fetching latest activity...</p>
       ) : processedFeedProjects.length === 0 ? (
@@ -222,29 +205,47 @@ export const Dashboard = () => {
       )}
     </div>
   );
-  // --- RIGHT PANE (Pending Requests) ---
+
+  // --- RIGHT PANE ---
   const RightContent = (
-    <div className="space-y-6">
-      <div>
-        <h3 className="font-semibold text-sm mb-3 text-github-muted">Pending Requests</h3>
-        <Card className="!p-3 space-y-2 border-l-4 border-l-blue-500">
-          <p className="text-xs text-github-text">
-            <span className="font-bold text-white">Elishua Naidoo</span> wants to collaborate.
-          </p>
-          <div className="flex space-x-2 pt-1">
-            <Button variant="primary" className="!py-0.5 !px-2 text-xs">Accept</Button>
-            <Button variant="danger" className="!py-0.5 !px-2 text-xs">Decline</Button>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between border-b border-github-border pb-2">
+        <h3 className="font-semibold text-sm text-white">Recent Chats</h3>
+        <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full">3</span>
+      </div>
+      
+      <div className="space-y-2">
+        <div className="bg-[#161b22] p-2 rounded-md flex items-center space-x-3 cursor-pointer border border-transparent hover:border-github-border transition-colors">
+          <Avatar size="sm" />
+          <div className="flex-1 min-w-0">
+            <div className="flex justify-between">
+              <p className="text-xs font-bold text-white truncate">Elishua Naidoo</p>
+              <p className="text-[9px] text-github-muted">2m</p>
+            </div>
+            <p className="text-[10px] text-github-muted truncate mt-0.5">Let's start the API design.</p>
           </div>
-        </Card>
+        </div>
+
+        <div className="bg-[#161b22] p-2 rounded-md flex items-center space-x-3 cursor-pointer border border-transparent hover:border-github-border transition-colors">
+          <Avatar size="sm" />
+          <div className="flex-1 min-w-0">
+            <div className="flex justify-between">
+              <p className="text-xs font-bold text-white truncate">Kaiyur Khedun</p>
+              <p className="text-[9px] text-github-muted">1h</p>
+            </div>
+            <p className="text-[10px] text-github-muted truncate mt-0.5">I'll push the frontend updates.</p>
+          </div>
+        </div>
       </div>
     </div>
   );
 
+  // === THE MISSING PIECE! ===
+  // We must return the layout to React so it actually draws the screen!
   return (
     <div className="min-h-screen bg-github-dark font-sans flex flex-col">
       <Navbar />
       <div className="flex-grow">
-        {/* We pass hideRight based on the global state! */}
         <ThreePaneLayout 
           left={LeftContent} 
           middle={MiddleContent} 

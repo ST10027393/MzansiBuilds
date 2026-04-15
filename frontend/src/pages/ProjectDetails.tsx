@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Navbar } from '../components/layout/Navbar';
 import { ThreePaneLayout } from '../components/layout/ThreePaneLayout';
 import { Card } from '../components/common/Card';
@@ -276,12 +276,19 @@ export const ProjectDetails = () => {
       {/* Collaborators List - Now Visible via Backend Fix! */}
         {project.collaborators && project.collaborators.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-2">
-            <span className="text-xs text-github-muted self-center font-semibold">Collaborators:</span>
-            {project.collaborators.map((c: any) => (
-              <div key={c.id} className="flex items-center space-x-1 bg-github-surface px-2 py-1 rounded border border-github-border">
-                <Avatar size="sm"/>
+            <span className="text-xs text-github-muted self-center font-semibold">Team:</span>
+            {/* Always show the Owner */}
+            <Link to={`/profile/${project.authorId}`} className="flex items-center space-x-1 bg-github-surface px-2 py-1 rounded border border-github-border hover:border-blue-500 transition-colors">
+              <Avatar size="sm" />
+              <span className="text-xs text-github-text font-bold">{project.authorUsername} (Owner)</span>
+            </Link>
+
+            {/* Map over the rest of the Collaborators */}
+            {project.collaborators?.map((c: any) => (
+              <Link to={`/profile/${c.userId}`} key={c.id} className="flex items-center space-x-1 bg-github-surface px-2 py-1 rounded border border-github-border hover:border-blue-500 transition-colors">
+                <Avatar size="sm" />
                 <span className="text-xs text-github-text font-bold">{c.user?.username || c.userId}</span>
-              </div>
+              </Link>
             ))}
           </div>
         )}

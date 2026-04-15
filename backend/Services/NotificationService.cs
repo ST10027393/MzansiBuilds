@@ -19,7 +19,7 @@ namespace MzansiBuilds.Services
             _redis = redis;
         }
 
-        public async Task SendNotificationAsync(string userId, string type, string content, int? relatedEntityId = null)
+        public async Task SendNotificationAsync(string userId, string type, string content, string? relatedEntityId = null)
         {
             // 1. The Persistent Layer: Save to SQL
             var notification = new Notification

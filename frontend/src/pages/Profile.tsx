@@ -29,6 +29,7 @@ export const Profile = () => {
   const [projects, setProjects] = useState<any[]>([]);
   const [friendRequests, setFriendRequests] = useState<any[]>([]);
   const [friends, setFriends] = useState<any[]>([]);
+  const [friendStatus, setFriendStatus] = useState<'None' | 'Pending' | 'Friends' | 'Blocked'>('None');
   const [collabRequests, setCollabRequests] = useState<any[]>([]);
   
   const [isEditing, setIsEditing] = useState(false);
@@ -66,6 +67,9 @@ export const Profile = () => {
             
             const friendsRes = await api.get('/Friendship');
             setFriends(friendsRes.data);
+
+            const statusRes = await api.get(`/Friendship/status/${targetUserId}`).catch(() => ({ data: { status: 'None' } }));
+            setFriendStatus(statusRes.data.status);
 
             const collabRes = await api.get('/Collaboration/requests/pending').catch(() => ({ data: [] }));
             setCollabRequests(collabRes.data);
@@ -175,10 +179,24 @@ export const Profile = () => {
             {isEditing ? "Cancel Edit" : "Edit Profile"}
           </Button>
         ) : (
-          <>
-            <Button variant="primary" className="w-full" onClick={handleSendFriendRequest}>Add Friend</Button>
-            <Button variant="danger" className="w-full mt-2 bg-transparent border-red-500 text-red-500 hover:bg-red-500 hover:text-white">Report User</Button>
-          </>
+          <div className="space-y-2 w-full">
+            {friendStatus === 'None' && (
+              <Button variant="primary" className="w-full" onClick={handleSendFriendRequest}>Add Friend</Button>
+            )}
+            {friendStatus === 'Pending' && (
+              <Button variant="secondary" className="w-full opacity-50 cursor-not-allowed" disabled>Request Sent</Button>
+            )}
+            {friendStatus === 'Friends' && (
+              <div className="flex flex-col space-y-2 w-full">
+                <Button variant="primary" className="w-full bg-blue-600 border-none hover:bg-blue-500">💬 Message</Button>
+                <div className="flex space-x-2">
+                  <Button variant="secondary" className="flex-1 !text-xs" onClick={() => handleRespondRequest(targetUserId, false)}>Remove</Button>
+                  <Button variant="danger" className="flex-1 !text-xs">Block</Button>
+                </div>
+              </div>
+            )}
+            <Button variant="danger" className="w-full bg-transparent border-red-500 text-red-500 hover:bg-red-500 hover:text-white mt-4">Report User</Button>
+          </div>
         )}
       </div>
     </div>
@@ -260,7 +278,9 @@ export const Profile = () => {
             {friendRequests.length === 0 ? <p className="text-xs text-github-muted">No pending requests.</p> : (
               friendRequests.map(req => (
                 <Card key={req.id} className="!p-3 mb-2 space-y-2">
-                  <p className="text-xs text-white font-bold">{req.requesterId} wants to connect.</p>
+                  <p className="text-xs text-white font-bold"><Link to={`/profile/${req.requesterId}`} className="font-bold text-blue-400 hover:underline">
+                      {req.requesterId}
+                    </Link> wants to connect.</p>
                   <div className="flex space-x-2">
                     <Button variant="primary" className="!py-0.5 !px-2 text-xs" onClick={() => handleRespondRequest(req.id, true)}>Accept</Button>
                     <Button variant="danger" className="!py-0.5 !px-2 text-xs" onClick={() => handleRespondRequest(req.id, false)}>Decline</Button>
@@ -275,7 +295,9 @@ export const Profile = () => {
               collabRequests.map(req => (
                 <Card key={req.id} className="!p-3 mb-2 space-y-2 border-l-2 border-l-blue-500">
                   <p className="text-xs text-white">
-                    <span className="font-bold">{req.username}</span> wants to join <span className="font-bold italic">{req.projectTitle}</span>.
+                    <span className="font-bold"><Link to={`/profile/${req.username}`} className="font-bold text-blue-400 hover:underline">
+                      {req.username}
+                    </Link></span> wants to join <span className="font-bold italic">{req.projectTitle}</span>.
                   </p>
                   <div className="flex space-x-2">
                     <Button variant="primary" className="!py-0.5 !px-2 text-xs" onClick={() => handleRespondCollab(req.id, true)}>Accept</Button>
