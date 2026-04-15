@@ -6,6 +6,9 @@ using MzansiBuilds.Services;
 using System;
 using System.Threading.Tasks;
 using Xunit;
+using Microsoft.Extensions.Caching.Distributed;
+using Moq;
+
 
 namespace backend.Tests
 {
@@ -26,7 +29,8 @@ namespace backend.Tests
         {
             // Arrange: Set up the fake database and the service
             var context = GetInMemoryDbContext();
-            var service = new ProjectService(context);
+            var mockCache = new Mock<IDistributedCache>();
+            var service = new ProjectService(context, mockCache.Object);
             var testUserId = "test-user-123";
 
             // Act: Create a draft directly using our service
@@ -49,7 +53,8 @@ namespace backend.Tests
         {
             // Arrange
             var context = GetInMemoryDbContext();
-            var service = new ProjectService(context);
+            var mockCache = new Mock<IDistributedCache>();
+            var service = new ProjectService(context, mockCache.Object);
             var testUserId = "test-user-123";
 
             // FIX: Added the required 4th parameter for repoLink

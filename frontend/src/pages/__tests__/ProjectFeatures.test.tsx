@@ -1,4 +1,3 @@
-// FILE: frontend/src/pages/__tests__/ProjectFeatures.test.tsx
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { vi, describe, it, expect } from 'vitest';
@@ -44,6 +43,8 @@ describe('Project Features', () => {
   it('CreateProject: Submits form and redirects to new project', async () => {
     (api.post as any).mockResolvedValueOnce({ data: { id: '999' } });
 
+    (api.get as any).mockResolvedValue({ data: [] });
+
     renderWithProviders(<CreateProject />);
 
     fireEvent.change(screen.getByLabelText(/Project Title/i), { target: { value: 'Test App' } });
@@ -52,25 +53,27 @@ describe('Project Features', () => {
     fireEvent.click(screen.getByRole('button', { name: /Create Project/i }));
 
     await waitFor(() => {
-      // FIX 1: Updated assertion to expect '/Projects/draft' to match the actual code
       expect(api.post).toHaveBeenCalledWith('/Projects/draft', { title: 'Test App', description: 'A cool app', repoLink: '' });
       expect(mockNavigate).toHaveBeenCalledWith('/project/999');
     });
   });
 
   it('ProjectDetails (Viewer View): Hides publish and delete buttons', async () => {
-    // FIX 2: Upgraded the mock to intelligently handle multiple different API requests
+    // FIX: Provide the mock with the Ledgerly data so the assertions pass
     (api.get as any).mockImplementation((url: string) => {
-      if (url.includes('/comments') || url.includes('/collaborators')) {
-         return Promise.resolve({ data: [] }); // Return empty arrays for social data
-      }
-      return Promise.resolve({
-        data: { 
-          id: '123', title: 'Ledgerly', description: 'App', status: 'Draft', 
-          authorEmail: 'owner@test.com', // NOT the viewer@test.com we mocked above
-          milestones: [] 
-        }
+      if (url === '/Notifications') return Promise.resolve({ data: [] });
+      if (url === '/Projects/123') return Promise.resolve({ 
+          data: { 
+              id: '123', 
+              title: 'Ledgerly', 
+              description: 'A test description',
+              authorEmail: 'owner@test.com', // Different from the mocked current user
+              status: 'Published',
+              milestones: [],
+              collaborators: []
+          } 
       });
+      return Promise.resolve({ data: [] }); 
     });
 
     renderWithProviders(<ProjectDetails />);
@@ -87,7 +90,7 @@ describe('Project Features', () => {
     // Assert Viewer buttons & sections DO exist
     expect(screen.getByText(/Request Collaboration/i)).toBeInTheDocument();
     
-    // FIX: Look specifically for the Comments heading instead of a generic button
+    // Look specifically for the Comments heading instead of a generic button
     expect(screen.getByRole('heading', { name: /Comments/i })).toBeInTheDocument();
   });
 });
