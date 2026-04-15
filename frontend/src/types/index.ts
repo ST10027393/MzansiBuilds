@@ -1,3 +1,4 @@
+// FILE: frontend/src/types/index.ts
 import type { JSX } from "react/jsx-runtime";
 
 // FILE: frontend/src/types/index.ts

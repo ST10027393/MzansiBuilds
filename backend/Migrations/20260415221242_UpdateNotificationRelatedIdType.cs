@@ -1,3 +1,4 @@
+// FILE: backend/Migrations/20260415221242_UpdateNotificationRelatedIdType.cs
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable

@@ -1,3 +1,4 @@
+// FILE: frontend/src/pages/Profile.tsx
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Navbar } from '../components/layout/Navbar';

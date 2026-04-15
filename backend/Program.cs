@@ -57,7 +57,8 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins("http://localhost:5173") // Vite's default port
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+                .AllowCredentials();
     });
 });
 
@@ -114,8 +115,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddSignalR();
 
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-builder.WebHost.UseUrls($"http://*:{port}");
+if (!builder.Environment.IsDevelopment())
+{
+    var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+    builder.WebHost.UseUrls($"http://*:{port}");
+}
 
 var app = builder.Build();
 
@@ -129,8 +133,8 @@ app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors("AllowFrontend");
 app.UseAuthentication(); //JWT AUTHENTICATION
-app.MapHub<NotificationHub>("/hubs/notifications");
 app.UseAuthorization();
+app.MapHub<NotificationHub>("/hubs/notifications");
 app.MapControllers();
 
 app.Run();

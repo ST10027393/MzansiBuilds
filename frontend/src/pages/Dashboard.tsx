@@ -1,3 +1,4 @@
+// FILE: frontend/src/pages/Dashboard.tsx
 import { useState, useEffect } from 'react';
 import { Navbar } from '../components/layout/Navbar';
 import { ThreePaneLayout } from '../components/layout/ThreePaneLayout';

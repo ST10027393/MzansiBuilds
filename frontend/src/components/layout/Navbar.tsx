@@ -1,3 +1,4 @@
+// FILE: frontend/src/components/layout/Navbar.tsx
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useGlobalState } from '../../context/GlobalStateContext';

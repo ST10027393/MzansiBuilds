@@ -1,3 +1,4 @@
+// FILE: frontend/src/pages/ProjectDetails.tsx
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Navbar } from '../components/layout/Navbar';

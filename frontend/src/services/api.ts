@@ -3,7 +3,7 @@ import axios from 'axios';
 import { auth } from './firebase'; // 
 
 const api = axios.create({
-    baseURL: 'http://localhost:5152/api', // C# backend URL
+    baseURL: 'http://localhost:8080/api', // C# backend URL
 });
 
 api.interceptors.request.use(async (config) => {
