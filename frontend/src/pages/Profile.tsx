@@ -9,7 +9,6 @@ import { useAuth } from '../context/AuthContext';
 import { useGlobalState } from '../context/GlobalStateContext';
 import api from '../services/api';
 
-// NEW: Import Firebase auth methods
 import { updatePassword } from 'firebase/auth';
 import { auth } from '../services/firebase'; 
 
@@ -35,7 +34,6 @@ export const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({ username: '', bio: '', name: '', surname: '' });
 
-  // NEW: Security & Feedback States
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [profileFeedback, setProfileFeedback] = useState({ type: '', message: '' });
@@ -58,6 +56,7 @@ export const Profile = () => {
             surname: userRes.data.surname 
         });
 
+        // Fetches your projects AND collaborations
         const projRes = await api.get(isOwner ? '/Projects/mine' : `/Projects/user/${targetUserId}`);
         setProjects(projRes.data);
 
@@ -78,21 +77,17 @@ export const Profile = () => {
     fetchProfileData();
   }, [targetUserId, isOwner]);
 
-  // --- UPDATED: Profile Save Logic with Username Validation ---
   const handleSaveProfile = async () => {
-    setProfileFeedback({ type: '', message: '' }); // Reset feedback
+    setProfileFeedback({ type: '', message: '' });
     try {
       await api.patch('/Users/profile', editForm);
       setProfileData({ ...profileData, ...editForm } as UserProfile);
       setProfileFeedback({ type: 'success', message: 'Profile updated successfully!' });
-      
-      // Auto-close edit mode after 1.5 seconds on success
       setTimeout(() => {
         setIsEditing(false);
         setProfileFeedback({ type: '', message: '' });
       }, 1500);
     } catch (e: any) {
-      // Catch specific errors from C# backend (e.g., 409 Conflict or a 400 Bad Request)
       if (e.response?.status === 409 || e.response?.data?.toLowerCase().includes('taken')) {
         setProfileFeedback({ type: 'error', message: 'Username is already taken. Please try another.' });
       } else {
@@ -101,9 +96,8 @@ export const Profile = () => {
     }
   };
 
-  // --- NEW: Password Change Logic ---
   const handlePasswordChange = async () => {
-    setPasswordFeedback({ type: '', message: '' }); // Reset feedback
+    setPasswordFeedback({ type: '', message: '' });
 
     if (newPassword !== confirmPassword) {
       setPasswordFeedback({ type: 'error', message: 'Passwords do not match.' });
@@ -122,7 +116,6 @@ export const Profile = () => {
         setNewPassword('');
         setConfirmPassword('');
       } catch (error: any) {
-        // Firebase requires users to have logged in recently to change sensitive data
         if (error.code === 'auth/requires-recent-login') {
           setPasswordFeedback({ type: 'error', message: 'For security reasons, please log out and log back in to change your password.' });
         } else if (error.code === 'auth/weak-password') {
@@ -134,13 +127,28 @@ export const Profile = () => {
     }
   };
 
-  // ... (Keep existing handleSendFriendRequest and handleRespondRequest untouched) ...
-  const handleSendFriendRequest = async () => { /* untouched */ };
-  const handleRespondRequest = async (requestId: number, accept: boolean) => { /* untouched */ };
+  const handleSendFriendRequest = async () => {
+    try {
+      await api.post(`/Friendship/${targetUserId}/request`);
+      alert("Friend request sent!");
+    } catch (e: any) {
+      alert(e.response?.data || "Failed to send request.");
+    }
+  };
+
+  // FIX: Restored the actual logic here so TS stops throwing unused variable errors!
+  const handleRespondRequest = async (requestId: number, accept: boolean) => {
+    try {
+      await api.patch(`/Friendship/${requestId}/respond`, { accept });
+      setFriendRequests(friendRequests.filter(req => req.id !== requestId));
+    } catch (e) {
+      console.error("Failed to respond to request", e);
+    }
+  };
+
   const handleRespondCollab = async (requestId: number, accept: boolean) => {
     try {
       await api.patch(`/Collaboration/requests/${requestId}/respond`, { accept });
-      // Instantly remove it from the UI feed
       setCollabRequests(collabRequests.filter(req => req.id !== requestId));
     } catch (e) {
       console.error("Failed to respond to collab request", e);
@@ -149,10 +157,11 @@ export const Profile = () => {
 
   if (!profileData) return <div className="p-10 text-white text-center">Loading Profile...</div>;
 
-  const LeftContent = ( /* untouched */
+  const LeftContent = (
     <div className="space-y-6">
       <div className="flex flex-col items-center space-y-3 text-center border-b border-github-border pb-6">
-        <Avatar size="lg" className="w-24 h-24" />
+        {/* FIX: Removed invalid className prop */}
+        <Avatar size="lg" />
         <div>
           <h2 className="font-bold text-xl text-white">{profileData.name} {profileData.surname}</h2>
           <p className="text-github-muted text-sm">@{profileData.username}</p>
@@ -175,21 +184,15 @@ export const Profile = () => {
     </div>
   );
 
-  // --- UPDATED: Middle Pane to include Feedback and Password UI ---
   const MiddleContent = isEditing ? (
     <div className="space-y-8 max-w-lg">
-      
-      {/* Profile Details Edit Section */}
       <div className="space-y-4">
         <h2 className="text-xl font-bold text-white border-b border-github-border pb-2">Edit Profile</h2>
-        
-        {/* Profile Feedback Banner */}
         {profileFeedback.message && (
           <div className={`p-2 rounded text-xs border ${profileFeedback.type === 'error' ? 'bg-red-900/30 text-red-400 border-red-800' : 'bg-green-900/30 text-green-400 border-green-800'}`}>
             {profileFeedback.message}
           </div>
         )}
-
         <div className="space-y-2">
             <label className="text-xs text-github-muted font-semibold">Username</label>
             <input value={editForm.username} onChange={e => setEditForm({...editForm, username: e.target.value})} placeholder="Username" className="w-full bg-github-dark border border-github-border rounded p-2 text-sm text-white focus:border-blue-500 outline-none" />
@@ -211,17 +214,13 @@ export const Profile = () => {
         <Button variant="primary" onClick={handleSaveProfile}>Save Profile Settings</Button>
       </div>
 
-      {/* Security / Password Edit Section */}
       <div className="space-y-4 pt-4">
         <h2 className="text-xl font-bold text-white border-b border-github-border pb-2 text-red-400">Security</h2>
-        
-        {/* Password Feedback Banner */}
         {passwordFeedback.message && (
           <div className={`p-2 rounded text-xs border ${passwordFeedback.type === 'error' ? 'bg-red-900/30 text-red-400 border-red-800' : 'bg-green-900/30 text-green-400 border-green-800'}`}>
             {passwordFeedback.message}
           </div>
         )}
-
         <div className="space-y-2">
             <label className="text-xs text-github-muted font-semibold">New Password</label>
             <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="At least 6 characters" className="w-full bg-github-dark border border-github-border rounded p-2 text-sm text-white focus:border-red-500 outline-none" />
@@ -232,10 +231,8 @@ export const Profile = () => {
         </div>
         <Button variant="danger" onClick={handlePasswordChange}>Update Password</Button>
       </div>
-
     </div>
   ) : (
-    // ... (Keep existing project rendering logic untouched)
     <div className="space-y-4">
       <h2 className="text-xl font-bold text-white border-b border-github-border pb-3">Projects</h2>
       {projects.length === 0 ? (
@@ -244,7 +241,8 @@ export const Profile = () => {
         projects.map(project => (
           <Link to={`/project/${project.id}`} key={project.id} className="block mb-3">
             <Card hoverable className="border-l-2 border-l-blue-500">
-              <h4 className="font-bold text-blue-400">{project.title}</h4>
+              {/* FIX: Displays ownerUsername-ProjectTitle formatting! */}
+              <h4 className="font-bold text-blue-400">{project.authorUsername}-{project.title}</h4>
               <p className="text-sm text-github-text mt-1 truncate">{project.description}</p>
             </Card>
           </Link>
@@ -253,7 +251,7 @@ export const Profile = () => {
     </div>
   );
 
-  const RightContent = ( /* untouched */
+  const RightContent = (
     <div className="space-y-6">
       {isOwner && (
         <>
@@ -271,7 +269,6 @@ export const Profile = () => {
               ))
             )}
           </div>
-          {/* NEW: Collab Requests */}
           <div>
             <h3 className="font-semibold text-sm text-white mb-3 mt-4 text-blue-400">Collab Requests</h3>
             {collabRequests.length === 0 ? <p className="text-xs text-github-muted">No pending collaborations.</p> : (
@@ -293,6 +290,7 @@ export const Profile = () => {
             {friends.length === 0 ? <p className="text-xs text-github-muted">You haven't added any friends yet.</p> : (
               friends.map(friend => (
                 <div key={friend.id} className="flex items-center space-x-2 mb-2 p-2 hover:bg-github-surface rounded cursor-pointer">
+                  {/* FIX: Removed invalid className prop */}
                   <Avatar size="sm" />
                   <span className="text-sm text-github-text">{friend.requesterId === currentUser?.uid ? friend.addresseeId : friend.requesterId}</span>
                 </div>

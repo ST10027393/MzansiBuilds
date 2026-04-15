@@ -19,7 +19,8 @@ interface Project {
   authorUsername: string;
   authorId: string; 
   status: string;
-  createdAt: string; 
+  createdAt: string;
+  owner?: { username: string }; 
 }
 
 export const Dashboard = () => {
@@ -134,7 +135,7 @@ export const Dashboard = () => {
                   <Card hoverable className="!p-3 border-l-4 border-l-transparent hover:border-l-blue-500 transition-all cursor-pointer">
                     {/* Updated Naming Convention: username-projectname */}
                     <h4 className="font-semibold text-sm text-blue-400">
-                      {project.authorUsername}-{project.title}
+                      {(project.authorUsername || project.owner?.username)}-{project.title}
                     </h4>
                     <p className="text-xs text-github-muted mt-1 truncate">{project.description}</p>
                   </Card>
@@ -206,7 +207,7 @@ export const Dashboard = () => {
               <div className="flex items-start justify-between">
                 <div className="flex items-center space-x-2">
                   <Avatar size="sm" />
-                  <span className="font-semibold text-sm text-white">{project.authorUsername}-{project.title}</span>
+                  <span className="font-semibold text-sm text-white">{project.authorUsername || project.owner?.username}-{project.title}</span>
                 </div>
                 <Badge text={project.status || "Published"} color={project.status === 'Completed' ? 'green' : 'muted'} />
               </div>

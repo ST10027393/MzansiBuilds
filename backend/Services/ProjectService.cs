@@ -64,7 +64,8 @@ namespace MzansiBuilds.Services
         {
             // The "Where" clause is the secret sauce here
             return await _context.Projects
-                .Include(p => p.Milestones) // Optional: If you want to show milestones on the feed cards later!
+                .Include(p => p.Milestones)
+                .Include(p => p.Owner)
                 .Where(p => p.Status == "Published" || p.Status == "Completed") 
                 .OrderByDescending(p => p.UpdatedAt)
                 .ToListAsync();
@@ -106,6 +107,7 @@ namespace MzansiBuilds.Services
         {
             return await _context.Projects
                 .Include(p => p.Collaborators) // Ensure collaborators are loaded
+                .Include(p => p.Owner)
                 .Where(p => p.OwnerId == userId || p.Collaborators.Any(c => c.UserId == userId))
                 .OrderByDescending(p => p.UpdatedAt)
                 .ToListAsync();

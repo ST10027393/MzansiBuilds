@@ -279,7 +279,7 @@ export const ProjectDetails = () => {
             <span className="text-xs text-github-muted self-center font-semibold">Collaborators:</span>
             {project.collaborators.map((c: any) => (
               <div key={c.id} className="flex items-center space-x-1 bg-github-surface px-2 py-1 rounded border border-github-border">
-                <Avatar size="sm" className="w-4 h-4" />
+                <Avatar size="sm"/>
                 <span className="text-xs text-github-text font-bold">{c.user?.username || c.userId}</span>
               </div>
             ))}
