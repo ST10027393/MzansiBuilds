@@ -1,3 +1,4 @@
+// FILE: frontend/src/pages/Register.tsx
 import { useState } from 'react';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../services/firebase';

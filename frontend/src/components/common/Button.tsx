@@ -1,3 +1,4 @@
+// FILE: frontend/src/components/common/Button.tsx
 // src/components/common/Button.tsx
 import React from 'react';
 

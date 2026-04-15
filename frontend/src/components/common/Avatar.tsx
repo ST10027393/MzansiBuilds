@@ -1,3 +1,4 @@
+// FILE: frontend/src/components/common/Avatar.tsx
 // src/components/common/Avatar.tsx
 
 interface AvatarProps {

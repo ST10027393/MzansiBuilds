@@ -1,3 +1,4 @@
+// FILE: backend.Tests/AuthenticationTests.cs
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;

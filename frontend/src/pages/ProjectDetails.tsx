@@ -8,6 +8,7 @@ import { Badge } from '../components/common/Badge';
 import { useAuth } from '../context/AuthContext';
 import type { Project, Milestone } from '../types';
 import api from '../services/api';
+import { Avatar } from '../components/common/Avatar';
 
 interface Comment { id: string; username: string; text: string; }
 interface CollabRequest { id: string; username: string; }
@@ -21,22 +22,25 @@ export const ProjectDetails = () => {
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
   const [collabRequests, setCollabRequests] = useState<CollabRequest[]>([]);
+  const [collabStatus, setCollabStatus] = useState<string | null>(null);
   
   const [newMilestoneTitle, setNewMilestoneTitle] = useState('');
   const [newCommentText, setNewCommentText] = useState('');
   const [loading, setLoading] = useState(true);
-
   const [isEditing, setIsEditing] = useState(false);
-  // 1. Updated editForm state to include readme
+  
+  // NEW: State to track if the viewer has a pending request
+  const [hasPendingRequest, setHasPendingRequest] = useState(false);
+  
   const [editForm, setEditForm] = useState({ title: '', description: '', readme: '' });
 
   useEffect(() => {
+    if (!currentUser) return;
     const fetchProjectData = async () => {
       try {
         const res = await api.get(`/Projects/${id}`);
         setProject(res.data);
         
-        // 2. Pre-fill the edit form including the readme
         setEditForm({ 
             title: res.data.title, 
             description: res.data.description, 
@@ -48,9 +52,16 @@ export const ProjectDetails = () => {
         const commentsRes = await api.get(`/Projects/${id}/comments`).catch(() => ({ data: [] }));
         setComments(commentsRes.data);
 
+        // Fetch requests if owner
         if (currentUser?.email === res.data.authorEmail || currentUser?.email?.split('@')[0] === res.data.authorUsername) {
-          const reqRes = await api.get(`/Projects/${id}/collaborators/requests`).catch(() => ({ data: [] }));
-          setCollabRequests(reqRes.data);
+          const reqRes = await api.get(`/Collaboration/requests/pending`).catch(() => ({ data: [] }));
+          setCollabRequests(reqRes.data.filter((r: any) => r.projectId.toString() === id));
+        }
+
+        if (currentUser) {
+          const myReqsRes = await api.get(`/Collaboration/requests/sent`).catch(() => ({ data: [] }));
+          const myReq = myReqsRes.data.find((r: any) => r.projectId.toString() === id);
+          if (myReq) setCollabStatus(myReq.status); // "Pending", "Declined", or "Accepted"
         }
       } catch (error) {
         console.error("Project not found");
@@ -60,11 +71,8 @@ export const ProjectDetails = () => {
       }
     };
     fetchProjectData();
-  }, [id, navigate, currentUser?.email]);
+  }, [id, navigate, currentUser]);
 
-  if (loading || !project) return <div className="p-10 text-white text-center">Loading...</div>;
-
-  // FIX: Added strict existence checks so undefined !== undefined!
   const isOwner = Boolean(
     currentUser && project && (
       (currentUser.uid && currentUser.uid === (project as any).authorId) || 
@@ -74,13 +82,20 @@ export const ProjectDetails = () => {
     )
   );
 
-  const isCompleted = (project.status as string) === 'Completed';
+  const isCompleted = (project?.status as string) === 'Completed';
+
+  const isCollaborator = Boolean(
+    currentUser && project && project.collaborators && 
+    project.collaborators.some((c: any) => c.userId === currentUser.uid)
+  );
+
+  const canEdit = isOwner || isCollaborator;
 
   // --- API Handlers: Status Changes ---
   const handlePublish = async () => {
     try {
       await api.patch(`/Projects/${id}/publish`);
-      setProject({ ...project, status: 'Published' });
+      setProject({ ...project!, status: 'Published' });
     } catch (error: any) {
       alert(error.response?.data || "Failed to publish project.");
     }
@@ -90,8 +105,7 @@ export const ProjectDetails = () => {
     if (window.confirm("Are you sure you want to mark this project as Completed? This locks milestones and collaborations.")) {
       try {
         await api.patch(`/Projects/${id}/complete`);
-        // Add "as any" to the status here:
-        setProject({ ...project, status: 'Completed' as any });
+        setProject({ ...project!, status: 'Completed' as any });
       } catch (error: any) {
         alert(error.response?.data || "Failed to complete project.");
       }
@@ -105,11 +119,10 @@ export const ProjectDetails = () => {
     }
   };
 
-  // 3. Updated save edits handler to pass the entire editForm payload
   const handleSaveEdits = async () => {
     try {
       await api.put(`/Projects/${id}`, editForm);
-      setProject({ ...project, ...editForm });
+      setProject({ ...project!, ...editForm });
       setIsEditing(false);
     } catch (error) {
       console.error("Failed to save edits", error);
@@ -120,19 +133,18 @@ export const ProjectDetails = () => {
   // --- API Handlers: Milestones ---
   const addMilestone = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMilestoneTitle || isCompleted) return; // Logic Lock
+    if (!newMilestoneTitle || isCompleted) return; 
     const res = await api.post(`/Projects/${id}/milestones`, { title: newMilestoneTitle, isCompleted: false, orderIndex: milestones.length });
     setMilestones([...milestones, res.data]);
     setNewMilestoneTitle('');
   };
 
   const toggleMilestone = async (mId: string, currentStatus: boolean) => {
-    if (isCompleted) return; // Logic Lock
+    if (isCompleted) return; 
     await api.put(`/Projects/${id}/milestones/${mId}`, { isCompleted: !currentStatus });
     setMilestones(milestones.map(m => m.id === mId ? { ...m, isCompleted: !currentStatus } : m));
   };
 
-  // Helper added to support your Up/Down reorder arrows!
   const moveMilestone = async (index: number, direction: 'up' | 'down') => {
     if ((direction === 'up' && index === 0) || (direction === 'down' && index === milestones.length - 1)) return;
     const newMilestones = [...milestones];
@@ -146,6 +158,7 @@ export const ProjectDetails = () => {
     } catch(e) { console.error("Failed to reorder", e); }
   };
 
+  // --- API Handlers: Social Engine ---
   const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCommentText) return;
@@ -156,20 +169,43 @@ export const ProjectDetails = () => {
 
   const handleRequestCollab = async () => {
     try {
-      await api.post(`/Projects/${id}/collaborators/requests`);
-      alert("Collaboration request sent!");
+      await api.post(`/Collaboration/${id}/request`, { PitchMessage: "I would love to help!" });
+      setHasPendingRequest(true); // Visually update the button
     } catch (error: any) {
-      alert(error.response?.data || "Failed to send request.");
+      // If the backend says "already requested", update the UI to match
+      if (error.response?.data?.includes("already requested")) {
+        setHasPendingRequest(true);
+      } else {
+        alert(error.response?.data || "Failed to send request.");
+      }
     }
   };
+
+  // NEW: Real handler for the Owner to accept/decline from the Project page
+  const handleRespondCollab = async (requestId: string, accept: boolean) => {
+    try {
+      await api.patch(`/Collaboration/requests/${requestId}/respond`, { accept });
+      // Instantly remove it from the UI queue
+      setCollabRequests(collabRequests.filter(req => req.id !== requestId));
+      
+      // If accepted, fetch the project again to refresh the Collaborators List
+      if (accept) {
+        const res = await api.get(`/Projects/${id}`);
+        setProject(res.data);
+      }
+    } catch (e) {
+      console.error("Failed to respond to collab request", e);
+    }
+  };
+
+  if (loading || !project) return <div className="p-10 text-white text-center">Loading...</div>;
 
   // --- LEFT PANE ---
   const LeftContent = (
     <div className="space-y-4">
       <h3 className="font-semibold text-sm text-white border-b border-github-border pb-2">Milestones</h3>
       
-      {/* Logic Lock: Hide form if Completed */}
-      {isOwner && !isEditing && !isCompleted && (
+      {canEdit && !isEditing && !isCompleted && (
         <form onSubmit={addMilestone} className="flex space-x-2">
           <input 
             value={newMilestoneTitle} onChange={e => setNewMilestoneTitle(e.target.value)}
@@ -180,7 +216,6 @@ export const ProjectDetails = () => {
         </form>
       )}
       
-      {/* 4. Updated Left Pane UI with Reorder & Delete Buttons */}
       <div className="space-y-2">
         {milestones.length === 0 && <p className="text-xs text-github-muted italic">No milestones yet.</p>}
         {milestones.map((m, index) => (
@@ -190,16 +225,15 @@ export const ProjectDetails = () => {
                 type="checkbox" 
                 checked={m.isCompleted} 
                 onChange={() => toggleMilestone(m.id, m.isCompleted)}
-                disabled={!isOwner || isEditing || isCompleted} 
-                className="w-4 h-4 rounded border-gray-600 bg-gray-700 disabled:opacity-50"
+                disabled={!canEdit || isEditing || isCompleted} 
+                className="w-4 h-4 rounded border-gray-600 bg-gray-700 disabled:opacity-50 cursor-pointer"
               />
               <span className={`text-sm ${m.isCompleted ? 'line-through text-github-muted' : 'text-github-text'} ${isCompleted ? 'opacity-75' : ''}`}>
                 {m.title}
               </span>
             </div>
             
-            {/* Added Reorder & Delete Buttons */}
-            {isOwner && !isEditing && !isCompleted && (
+            {canEdit && !isEditing && !isCompleted && (
               <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button onClick={() => moveMilestone(index, 'up')} className="text-github-muted hover:text-white text-[10px]">▲</button>
                 <button onClick={() => moveMilestone(index, 'down')} className="text-github-muted hover:text-white text-[10px]">▼</button>
@@ -239,7 +273,19 @@ export const ProjectDetails = () => {
         <Badge text={project.status} color={isCompleted ? 'green' : (project.status === 'Published' ? 'muted' : undefined)} />
       </div>
 
-      {/* 5. Updated Middle Pane README UI */}
+      {/* Collaborators List - Now Visible via Backend Fix! */}
+        {project.collaborators && project.collaborators.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            <span className="text-xs text-github-muted self-center font-semibold">Collaborators:</span>
+            {project.collaborators.map((c: any) => (
+              <div key={c.id} className="flex items-center space-x-1 bg-github-surface px-2 py-1 rounded border border-github-border">
+                <Avatar size="sm"/>
+                <span className="text-xs text-github-text font-bold">{c.user?.username || c.userId}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
       <Card className="!p-6 min-h-[300px]">
         {isEditing ? (
           <div className="flex flex-col h-full space-y-2">
@@ -263,7 +309,7 @@ export const ProjectDetails = () => {
     <div className="space-y-8">
       <div>
         <h3 className="font-semibold text-sm text-white border-b border-github-border pb-2 mb-3">Actions</h3>
-        {isOwner ? (
+        {canEdit ? (
           <div className="space-y-2">
             {isEditing ? (
               <>
@@ -274,27 +320,33 @@ export const ProjectDetails = () => {
               <>
                 <Button variant="secondary" className="w-full" onClick={() => setIsEditing(true)}>✏️ Edit Project</Button>
                 
-                {/* Status Progression Workflow */}
-                {project.status === 'Draft' && (
+                {/* Only the true owner should be able to complete or delete */}
+                {isOwner && project.status === 'Draft' && (
                   <Button variant="primary" className="w-full" onClick={handlePublish}>🚀 Publish Project</Button>
                 )}
-                {project.status === 'Published' && (
+                {isOwner && project.status === 'Published' && (
                   <Button variant="primary" className="w-full !bg-green-600 hover:!bg-green-500 !border-transparent" onClick={handleComplete}>🏆 Mark as Complete</Button>
                 )}
-                <Button variant="danger" className="w-full mt-4" onClick={handleDelete}>🗑️ Delete</Button>
+                {isOwner && (
+                  <Button variant="danger" className="w-full mt-4" onClick={handleDelete}>🗑️ Delete Project</Button>
+                )}
               </>
             )}
           </div>
         ) : (
           <div className="space-y-2">
-            {/* Logic Lock: Hide collab request if completed */}
             {isCompleted ? (
               <div className="bg-green-900/30 text-green-400 border border-green-800 text-xs text-center py-2 rounded">
                 This project is completed.
               </div>
+            ) : collabStatus === 'Pending' || hasPendingRequest ? (
+              <Button variant="secondary" className="w-full !opacity-50 cursor-not-allowed" disabled>⏳ Request Pending</Button>
+            ) : collabStatus === 'Declined' ? (
+              <Button variant="danger" className="w-full" onClick={handleRequestCollab}>↻ Request Declined (Try Again)</Button>
             ) : (
               <Button variant="primary" className="w-full" onClick={handleRequestCollab}>🤝 Request Collaboration</Button>
             )}
+            
             {project.repoLink && (
               <a href={project.repoLink} target="_blank" rel="noreferrer" className="block w-full text-center border border-github-border text-github-text py-1.5 rounded-md text-sm hover:bg-github-surface transition-colors">
                 View Repository
@@ -341,8 +393,9 @@ export const ProjectDetails = () => {
                     <Card key={req.id} className="!p-2 border-l-4 border-l-blue-500">
                       <p className="text-xs text-github-text"><span className="font-bold text-white">{req.username}</span> wants to join.</p>
                       <div className="flex space-x-2 pt-2">
-                        <Button onClick={() => {}} variant="primary" className="!py-0.5 !px-2 text-xs">Accept</Button>
-                        <Button onClick={() => {}} variant="danger" className="!py-0.5 !px-2 text-xs">Decline</Button>
+                        {/* 2. REPLACED EMPTY ONCLICKS WITH REAL LOGIC */}
+                        <Button onClick={() => handleRespondCollab(req.id, true)} variant="primary" className="!py-0.5 !px-2 text-xs">Accept</Button>
+                        <Button onClick={() => handleRespondCollab(req.id, false)} variant="danger" className="!py-0.5 !px-2 text-xs">Decline</Button>
                       </div>
                     </Card>
                   ))

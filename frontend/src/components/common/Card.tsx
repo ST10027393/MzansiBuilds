@@ -1,3 +1,4 @@
+// FILE: frontend/src/components/common/Card.tsx
 // src/components/common/Card.tsx
 import React from 'react';
 

@@ -1,3 +1,4 @@
+// FILE: frontend/src/components/common/Input.tsx
 import { useId } from 'react';
 import type { InputHTMLAttributes } from 'react';
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {

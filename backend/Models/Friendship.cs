@@ -1,3 +1,4 @@
+// FILE: backend/Models/Friendship.cs
 namespace MzansiBuilds.Models
 {
     public class Friendship

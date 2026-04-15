@@ -1,3 +1,4 @@
+// FILE: backend/Controllers/TestAuthController.cs
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

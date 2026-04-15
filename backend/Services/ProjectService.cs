@@ -1,3 +1,4 @@
+// FILE: backend/Services/ProjectService.cs
 using Microsoft.EntityFrameworkCore;
 using MzansiBuilds.Data;
 using MzansiBuilds.Interfaces;
@@ -63,7 +64,8 @@ namespace MzansiBuilds.Services
         {
             // The "Where" clause is the secret sauce here
             return await _context.Projects
-                .Include(p => p.Milestones) // Optional: If you want to show milestones on the feed cards later!
+                .Include(p => p.Milestones)
+                .Include(p => p.Owner)
                 .Where(p => p.Status == "Published" || p.Status == "Completed") 
                 .OrderByDescending(p => p.UpdatedAt)
                 .ToListAsync();
@@ -103,19 +105,22 @@ namespace MzansiBuilds.Services
 
         public async Task<IEnumerable<Project>> GetMyProjectsAsync(string userId)
         {
-            // Go into the SQLite database, find all projects where the OwnerId matches the logged-in user,
-            // and order them from newest to oldest.
             return await _context.Projects
-                .Where(p => p.OwnerId == userId) 
-                .OrderByDescending(p => p.CreatedAt) 
+                .Include(p => p.Collaborators) // Ensure collaborators are loaded
+                .Include(p => p.Owner)
+                .Where(p => p.OwnerId == userId || p.Collaborators.Any(c => c.UserId == userId))
+                .OrderByDescending(p => p.UpdatedAt)
                 .ToListAsync();
         }
 
         public async Task<Project> GetProjectByIdAsync(int id)
         {
             return await _context.Projects
-                .Include(p => p.Milestones) // Make sure to include related data!
-                .FirstOrDefaultAsync(p => p.Id == id); // Use int.Parse(id) if your IDs are integers
+                .Include(p => p.Milestones)
+                // 1. ADD THESE TWO LINES:
+                .Include(p => p.Collaborators)
+                    .ThenInclude(c => c.User) 
+                .FirstOrDefaultAsync(p => p.Id == id);
         }
 
         public async Task<Project> UpdateProjectAsync(int id, string title, string description, string readme)
