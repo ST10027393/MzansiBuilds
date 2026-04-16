@@ -82,7 +82,7 @@ namespace MzansiBuilds.Controllers
                 userId: project.OwnerId, 
                 type: "CollaborationRequest",
                 content: message,
-                relatedEntityId: projectId
+                relatedEntityId: projectId.ToString()
             );
 
             return Ok(new { Message = "Collaboration request sent!", RequestId = collabRequest.Id });

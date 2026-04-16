@@ -1,7 +1,13 @@
 // FILE: backend/Controllers/FriendshipController.cs
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using MzansiBuilds.Hubs;
 using MzansiBuilds.Interfaces;
+using MzansiBuilds.Models;
+using MzansiBuilds.Data;
+using SQLitePCL;
 
 namespace MzansiBuilds.Controllers
 {
@@ -11,10 +17,12 @@ namespace MzansiBuilds.Controllers
     public class FriendshipController : ControllerBase
     {
         private readonly IFriendshipService _friendshipService;
+        private readonly ApplicationDbContext _context;
 
-        public FriendshipController(IFriendshipService friendshipService)
+        public FriendshipController(IFriendshipService friendshipService, ApplicationDbContext context)
         {
             _friendshipService = friendshipService;
+            _context = context;
         }
 
         [HttpPost("{addresseeId}/request")]
@@ -34,21 +42,28 @@ namespace MzansiBuilds.Controllers
             }
         }
 
-        [HttpPatch("{requestId}/respond")]
-        public async Task<IActionResult> RespondToRequest(int requestId, [FromBody] RespondToRequestDto dto)
+        [HttpPatch("{id}/respond")]
+        // FIXED: Changed RespondDto to RespondToRequestDto to match your class at the bottom
+        public async Task<IActionResult> RespondToRequest(int id, [FromBody] RespondToRequestDto req, [FromServices] IHubContext<NotificationHub> hub)
         {
-            var addresseeId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(addresseeId)) return Unauthorized("Invalid token.");
+            var request = await _context.Friendships.FindAsync(id); // FIXED: Changed DbContext to _context
+            if (request == null) return NotFound();
 
-            try
-            {
-                await _friendshipService.RespondToRequestAsync(requestId, addresseeId, dto.Accept);
-                return Ok(new { Message = dto.Accept ? "Friend request accepted." : "Friend request declined." });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            request.Status = req.Accept ? "Friends" : "Declined";
+            
+            var notification = new Notification {
+                UserId = request.RequesterId,
+                Type = "FriendAccept",
+                Content = "accepted your friend request!",
+                RelatedEntityId = request.AddresseeId, 
+                CreatedAt = DateTime.UtcNow
+            };
+            _context.Notifications.Add(notification);
+            await _context.SaveChangesAsync();
+
+            await hub.Clients.User(request.RequesterId).SendAsync("ReceiveNotification", notification);
+
+            return Ok();
         }
 
         [HttpDelete("{friendId}")]

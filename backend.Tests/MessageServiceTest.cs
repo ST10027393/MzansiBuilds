@@ -42,7 +42,7 @@ namespace backend.Tests
                 receiverId, 
                 "Message", 
                 "You have a new message!", 
-                message.Id), 
+                message.Id.ToString()), 
             Times.Once);
         }
 

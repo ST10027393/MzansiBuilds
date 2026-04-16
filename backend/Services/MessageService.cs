@@ -39,7 +39,7 @@ namespace MzansiBuilds.Services
                 userId: receiverId,
                 type: "Message",
                 content: $"You have a new message!",
-                relatedEntityId: message.Id
+                relatedEntityId: message.Id.ToString()
             );
 
             return message;

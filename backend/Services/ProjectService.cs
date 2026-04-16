@@ -1,5 +1,8 @@
 // FILE: backend/Services/ProjectService.cs
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed; // ADDED for Redis
+using System.Text.Json; // ADDED for JSON Serialization
+using System.Text.Json.Serialization; // ADDED to prevent object cycles
 using MzansiBuilds.Data;
 using MzansiBuilds.Interfaces;
 using MzansiBuilds.Models;
@@ -10,10 +13,13 @@ namespace MzansiBuilds.Services
     public class ProjectService : IProjectService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IDistributedCache _cache; // ADDED
 
-        public ProjectService(ApplicationDbContext context)
+        // ADDED IDistributedCache to the constructor for Dependency Injection
+        public ProjectService(ApplicationDbContext context, IDistributedCache cache)
         {
             _context = context;
+            _cache = cache;
         }
 
         public async Task<Project> CreateDraftAsync(string userId, string title, string description, string repoLink)
@@ -26,7 +32,7 @@ namespace MzansiBuilds.Services
                 Description = description,
                 RepoLink = repoLink,
                 Status = "Draft",
-                CurrentState = "Draft", // Keep this matched with your model
+                CurrentState = "Draft", 
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -44,7 +50,6 @@ namespace MzansiBuilds.Services
             if (project == null)
                 throw new Exception("Project not found or you are not the owner.");
 
-            // 1. Determine the current state object based on the database string
             IProjectState stateHandler = project.CurrentState switch
             {
                 "Draft" => new DraftState(),
@@ -53,22 +58,39 @@ namespace MzansiBuilds.Services
                 _ => throw new Exception("Unknown State")
             };
 
-            // 2. Attempt to publish (This will throw an error if it's already Completed)
             stateHandler.Publish(project);
 
             await _context.SaveChangesAsync();
             return project;
         }
 
+        // FIXED: Re-architected for the Service Layer (No Ok() responses, Returns IEnumerable<Project>)
         public async Task<IEnumerable<Project>> GetLiveFeedAsync()
         {
-            // The "Where" clause is the secret sauce here
-            return await _context.Projects
-                .Include(p => p.Milestones)
+            string cacheKey = "live_feed_projects";
+            var cachedFeed = await _cache.GetStringAsync(cacheKey);
+
+            // Configure JSON to ignore Entity Framework circular relationships (User -> Project -> User)
+            var jsonOptions = new JsonSerializerOptions { ReferenceHandler = ReferenceHandler.IgnoreCycles };
+
+            if (!string.IsNullOrEmpty(cachedFeed))
+            {
+                //INSTANT LOAD: Return the Redis cache directly
+                return JsonSerializer.Deserialize<IEnumerable<Project>>(cachedFeed, jsonOptions) ?? new List<Project>();
+            }
+
+            // SLOW LOAD: If Redis is empty, query Aiven MySQL
+            var projects = await _context.Projects
                 .Include(p => p.Owner)
-                .Where(p => p.Status == "Published" || p.Status == "Completed") 
-                .OrderByDescending(p => p.UpdatedAt)
+                .Where(p => p.Status == "Published" || p.Status == "Completed")
+                .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
+
+            // Save to Upstash Redis for 60 seconds
+            var cacheOptions = new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60) };
+            await _cache.SetStringAsync(cacheKey, JsonSerializer.Serialize(projects, jsonOptions), cacheOptions);
+
+            return projects;
         }
 
         public async Task<Project> CompleteProjectAsync(int projectId, string userId)
@@ -78,7 +100,6 @@ namespace MzansiBuilds.Services
             if (project == null)
                 throw new Exception("Project not found or you are not the owner.");
 
-            // 1. Determine the current state
             IProjectState stateHandler = project.CurrentState switch
             {
                 "Draft" => new DraftState(),
@@ -87,7 +108,6 @@ namespace MzansiBuilds.Services
                 _ => throw new Exception("Unknown State")
             };
 
-            // 2. Attempt to complete (This executes the logic you saw in PublishedState.cs!)
             stateHandler.Complete(project);
 
             await _context.SaveChangesAsync();
@@ -96,7 +116,6 @@ namespace MzansiBuilds.Services
 
         public async Task<IEnumerable<Project>> GetCelebrationWallAsync()
         {
-            // Only return Completed projects for the Celebration Wall
             return await _context.Projects
                 .Where(p => p.CurrentState == "Completed")
                 .OrderByDescending(p => p.UpdatedAt)
@@ -106,7 +125,7 @@ namespace MzansiBuilds.Services
         public async Task<IEnumerable<Project>> GetMyProjectsAsync(string userId)
         {
             return await _context.Projects
-                .Include(p => p.Collaborators) // Ensure collaborators are loaded
+                .Include(p => p.Collaborators) 
                 .Include(p => p.Owner)
                 .Where(p => p.OwnerId == userId || p.Collaborators.Any(c => c.UserId == userId))
                 .OrderByDescending(p => p.UpdatedAt)
@@ -117,7 +136,6 @@ namespace MzansiBuilds.Services
         {
             return await _context.Projects
                 .Include(p => p.Milestones)
-                // 1. ADD THESE TWO LINES:
                 .Include(p => p.Collaborators)
                     .ThenInclude(c => c.User) 
                 .FirstOrDefaultAsync(p => p.Id == id);
@@ -125,28 +143,23 @@ namespace MzansiBuilds.Services
 
         public async Task<Project> UpdateProjectAsync(int id, string title, string description, string readme)
         {
-            // 1. Find the project
             var project = await _context.Projects.FindAsync(id);
             if (project == null) throw new Exception("Project not found");
 
-            // 2. Update the fields
             project.Title = title;
             project.Description = description;
             project.Readme = readme;
             project.UpdatedAt = DateTime.UtcNow;
 
-            // 3. Save to Aiven
             await _context.SaveChangesAsync();
             return project;
         }
 
         public async Task<object> AddCommentAsync(int projectId, string userId, string text)
         {
-            // 1. Get the user so we know their Username
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
             if (user == null) throw new Exception("User not found");
 
-            // 2. Create the comment
             var comment = new Comment 
             {
                 ProjectId = projectId,
@@ -158,7 +171,6 @@ namespace MzansiBuilds.Services
             _context.Comments.Add(comment);
             await _context.SaveChangesAsync();
 
-            // 3. Return the exact JSON shape your React frontend is expecting!
             return new { 
                 id = comment.Id.ToString(), 
                 username = user.Username, 
@@ -168,13 +180,11 @@ namespace MzansiBuilds.Services
 
         public async Task DeleteMilestoneAsync(int projectId, int milestoneId)
         {
-            // 1. Find the milestone, ensuring it actually belongs to this project
             var milestone = await _context.Milestones
                 .FirstOrDefaultAsync(m => m.Id == milestoneId && m.ProjectId == projectId);
                 
             if (milestone != null)
             {
-                // 2. Delete it
                 _context.Milestones.Remove(milestone);
                 await _context.SaveChangesAsync();
             }

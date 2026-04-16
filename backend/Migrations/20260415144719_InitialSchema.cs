@@ -1,3 +1,4 @@
+// FILE: backend/Migrations/20260415144719_InitialSchema.cs
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;

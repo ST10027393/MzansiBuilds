@@ -45,7 +45,7 @@ namespace MzansiBuilds.Services
                 userId: addresseeId,
                 type: "FriendRequest",
                 content: "You have a new friend request!",
-                relatedEntityId: friendship.Id
+                relatedEntityId: friendship.Id.ToString()
             );
         }
 
@@ -65,7 +65,7 @@ namespace MzansiBuilds.Services
                     userId: friendship.RequesterId,
                     type: "FriendAccepted",
                     content: "Your friend request was accepted!",
-                    relatedEntityId: friendship.Id
+                    relatedEntityId: friendship.Id.ToString()
                 );
             }
         }
