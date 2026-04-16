@@ -1,4 +1,3 @@
-// FILE: frontend/src/pages/Profile.tsx
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Navbar } from '../components/layout/Navbar';
@@ -191,7 +190,7 @@ export const Profile = () => {
               <div className="flex flex-col space-y-2 w-full">
                 <Button variant="primary" className="w-full bg-blue-600 border-none hover:bg-blue-500">💬 Message</Button>
                 <div className="flex space-x-2">
-                  <Button variant="secondary" className="flex-1 !text-xs" onClick={() => handleRespondRequest(targetUserId, false)}>Remove</Button>
+                  <Button variant="secondary" className="flex-1 !text-xs" onClick={() => friends.find(f => (f.requesterId === currentUser?.uid ? f.addresseeId : f.requesterId) === id) && handleRespondRequest(friends.find(f => (f.requesterId === currentUser?.uid ? f.addresseeId : f.requesterId) === id)?.id, false)}>Remove</Button>
                   <Button variant="danger" className="flex-1 !text-xs">Block</Button>
                 </div>
               </div>
