@@ -1,7 +1,10 @@
 # MzansiBuilds: Enterprise Architecture & Technical Vision Report
 
-**Prepared By:** Genius Muzama  
-**Project:** Derivco Code Skills Quest  
+**Prepared By:** Genius Muzama
+
+**Project:** Derivco Code Skills Quest   
+
+**Accessible At:** [MzansiBuilds on Vercel](https://mzansi-builds-ng5r96jgd-st10027393s-projects.vercel.app)
 
 ---
 
