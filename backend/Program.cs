@@ -51,14 +51,18 @@ builder.Services.AddControllers()
     });
 
 // CORS policy!
+// Add this right around builder.Services.AddControllers();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173") // Vite's default port
+        policy.WithOrigins(
+                "https://mzansi-builds-red.vercel.app", // Your live Vercel app
+                "http://localhost:5173"                 // Your local Vite app
+              )
               .AllowAnyHeader()
               .AllowAnyMethod()
-                .AllowCredentials();
+              .AllowCredentials(); // CRITICAL: SignalR will fail without this!
     });
 });
 

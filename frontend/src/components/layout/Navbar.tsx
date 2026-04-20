@@ -1,4 +1,3 @@
-// FILE: frontend/src/components/layout/Navbar.tsx
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useGlobalState } from '../../context/GlobalStateContext';
@@ -27,11 +26,18 @@ export const Navbar = () => {
   // SignalR WebSocket Connection
   useEffect(() => {
     // 1. Fetch historical notifications on load
-    api.get('/Notifications').then(res => setNotifications(res.data)).catch(() => console.log("No notifications found"));
+    api.get('/Notifications')
+      .then(res => setNotifications(res.data))
+      .catch(() => console.log("No notifications found"));
 
-    // 2. Connect to SignalR
+    // 2. Dynamically grab the base URL (stripping out the '/api' part)
+    const backendUrl = import.meta.env.VITE_API_URL 
+      ? import.meta.env.VITE_API_URL.replace('/api', '') 
+      : 'http://localhost:5152';
+
+    // 3. Connect to the correct Hub URL
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl("http://localhost:5152/hubs/notifications")
+      .withUrl(`${backendUrl}/hubs/notifications`)
       .withAutomaticReconnect()
       .build();
 
@@ -115,7 +121,6 @@ export const Navbar = () => {
                         onClick={() => markAsRead(notif.id)}
                         className={`block px-4 py-3 text-sm hover:bg-github-dark cursor-pointer transition-colors ${!notif.isRead ? 'border-l-2 border-blue-500 bg-[#161b22]' : 'opacity-70'}`}
                       >
-                        {/* FIX: Mapped to C# model's Content property */}
                         <p className="text-github-text font-semibold">{notif.content}</p>
                         <p className="text-[10px] text-github-muted mt-1">Click to view</p>
                       </Link>
