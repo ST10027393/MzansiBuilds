@@ -11,6 +11,7 @@ import api from '../services/api';
 
 import { updatePassword } from 'firebase/auth';
 import { auth } from '../services/firebase'; 
+import * as signalR from '@microsoft/signalr';
 
 interface UserProfile {
   id: string;
@@ -43,6 +44,7 @@ export const Profile = () => {
   const isOwner = Boolean(currentUser && (!id || currentUser.uid === id));
   const targetUserId = id || currentUser?.uid;
 
+  // 1. Data Fetching Effect
   useEffect(() => {
     const fetchProfileData = async () => {
       if (!targetUserId) return;
@@ -57,7 +59,6 @@ export const Profile = () => {
             surname: userRes.data.surname 
         });
 
-        // Fetches your projects AND collaborations
         const projRes = await api.get(isOwner ? '/Projects/mine' : `/Projects/user/${targetUserId}`);
         setProjects(projRes.data);
 
@@ -73,6 +74,10 @@ export const Profile = () => {
 
             const collabRes = await api.get('/Collaboration/requests/pending').catch(() => ({ data: [] }));
             setCollabRequests(collabRes.data);
+        } else {
+            // Viewers need to know if they are already friends with this person
+            const statusRes = await api.get(`/Friendship/status/${targetUserId}`).catch(() => ({ data: { status: 'None' } }));
+            setFriendStatus(statusRes.data.status);
         }
       } catch (error) {
         console.error("Failed to load profile", error);
@@ -80,6 +85,37 @@ export const Profile = () => {
     };
     fetchProfileData();
   }, [targetUserId, isOwner]);
+
+
+  // 2. Real-time SignalR Listener Effect (NEW)
+  useEffect(() => {
+    // Only the profile owner needs to listen for their own real-time list updates
+    if (!isOwner) return;
+
+    // Dynamically grab the base URL (stripping out the '/api' part)
+    const backendUrl = import.meta.env.VITE_API_URL 
+      ? import.meta.env.VITE_API_URL.replace('/api', '') 
+      : 'http://localhost:5152';
+
+    const connection = new signalR.HubConnectionBuilder()
+      .withUrl(`${backendUrl}/hubs/notifications`)
+      .withAutomaticReconnect()
+      .build();
+
+    connection.on("FriendListUpdated", async () => {
+      // Refresh the friend list dynamically when someone else accepts your request!
+      try {
+        const friendsRes = await api.get('/Friendship');
+        setFriends(friendsRes.data);
+      } catch (e) {
+        console.error("Failed to refresh friends list", e);
+      }
+    });
+
+    connection.start().catch(err => console.error("Profile SignalR Error: ", err));
+
+    return () => { connection.stop(); };
+  }, [isOwner]);
 
   const handleSaveProfile = async () => {
     setProfileFeedback({ type: '', message: '' });
